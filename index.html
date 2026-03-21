@@ -56,7 +56,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .add-check-btn{display:flex;align-items:center;gap:6px;color:var(--primary);font-size:14px;border:none;background:none;padding:6px 0;cursor:pointer;width:100%;}
 .photo-block{background:var(--card);border-radius:10px;padding:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .photo-grid{display:flex;flex-direction:column;gap:6px;}
-.photo-wrap{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:8px;}
+.photo-wrap{position:relative;width:100%;overflow:hidden;border-radius:8px;}
+.photo-wrap img{width:100%;height:100%;object-fit:cover;user-select:none;transition:transform .1s;}
+.photo-controls{padding:6px 0;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+.photo-controls input[type=range]{flex:1;accent-color:var(--primary);}
 .photo-wrap img{width:100%;height:100%;object-fit:cover;user-select:none;}
 .photo-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .video-block{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:8px;}
@@ -295,7 +298,25 @@ function createBlockEl(block){
       pd.className='photo-del';
       pd.textContent='✕';
       pd.onclick=(e)=>{e.stopPropagation();collectMemoBlocks();const b=currentMemo.blocks.find(x=>x.id===block.id);b.photos.splice(i,1);renderMemoBody();};
-      pw.appendChild(img);pw.appendChild(pd);grid.appendChild(pw);
+      if(!block.transforms) block.transforms={};
+      if(!block.transforms[i]) block.transforms[i]={rotate:0,scale:1};
+      const t=block.transforms[i];
+      img.style.transform=`rotate(${t.rotate}deg) scale(${t.scale})`;
+      pw.appendChild(img);pw.appendChild(pd);
+      const ctrl=document.createElement('div');
+      ctrl.className='photo-controls';
+      const rLabel=document.createElement('span');
+      rLabel.textContent='↻';
+      const rSlider=document.createElement('input');
+      rSlider.type='range';rSlider.min=-180;rSlider.max=180;rSlider.value=t.rotate;
+      rSlider.oninput=()=>{t.rotate=Number(rSlider.value);img.style.transform=`rotate(${t.rotate}deg) scale(${t.scale})`;};
+      const sLabel=document.createElement('span');
+      sLabel.textContent='⤢';
+      const sSlider=document.createElement('input');
+      sSlider.type='range';sSlider.min=50;sSlider.max=200;sSlider.value=t.scale*100;
+      sSlider.oninput=()=>{t.scale=Number(sSlider.value)/100;img.style.transform=`rotate(${t.rotate}deg) scale(${t.scale})`;};
+      ctrl.appendChild(rLabel);ctrl.appendChild(rSlider);ctrl.appendChild(sLabel);ctrl.appendChild(sSlider);
+      grid.appendChild(pw);grid.appendChild(ctrl);
     });
     pb.appendChild(grid);wrap.appendChild(pb);
 
