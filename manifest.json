@@ -1,7 +1,7 @@
 {
   "name": "용용이 메모장",
   "short_name": "용용이 메모장",
-  "start_url": "/memo-app/",
+  "/memo-app/": "/memo-app/",
   "display": "standalone",
   "background_color": "#f5f5f7",
   "theme_color": "#007aff",
