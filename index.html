@@ -297,7 +297,8 @@ function createBlockEl(block){
       pw.style.cssText='position:relative;width:100%;min-height:200px;overflow:visible;border-radius:8px;background:#f0f0f0;';
       const img=document.createElement('img');
       img.src=p;
-      img.style.cssText=`width:100%;display:block;border-radius:8px;transform-origin:center;transform:translate(${t.x}px,${t.y}px) rotate(${t.rotate}deg) scale(${t.scale});touch-action:none;`;
+      img.style.cssText=`width:100%;height:auto;display:block;border-radius:8px;transform-origin:center;transform:translate(${t.x}px,${t.y}px) rotate(${t.rotate}deg) scale(${t.scale});touch-action:none;`;
+height:auto
       let pDist=0,pAngle=0,pScale=1,pRotate=0,pX=0,pY=0,lx=0,ly=0,dragging=false;
       img.addEventListener('touchstart',e=>{
         e.preventDefault();e.stopPropagation();
