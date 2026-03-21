@@ -294,7 +294,7 @@ function createBlockEl(block){
       const t=block.transforms[i];
       const pw=document.createElement('div');
       pw.className='photo-wrap';
-      pw.style.cssText='position:relative;width:100%;min-height:200px;overflow:visible;border-radius:8px;background:#f0f0f0;';
+      pw.style.cssText='position:relative;width:100%;min-height:200px;overflow:hidden;border-radius:8px;background:#f0f0f0;';
       const img=document.createElement('img');
       img.src=p;
       img.style.cssText=`width:100%;height:auto;display:block;border-radius:8px;transform-origin:center;transform:translate(${t.x}px,${t.y}px) rotate(${t.rotate}deg) scale(${t.scale});touch-action:none;`;
