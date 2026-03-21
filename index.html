@@ -298,11 +298,7 @@ function createBlockEl(block){
       pd.onclick=(e)=>{e.stopPropagation();collectMemoBlocks();const b=currentMemo.blocks.find(x=>x.id===block.id);b.photos.splice(i,1);renderMemoBody();};
       pw.appendChild(img);pw.appendChild(pd);grid.appendChild(pw);
     });
-    const addPhoto=document.createElement('div');
-    addPhoto.className='add-photo-btn';
-    addPhoto.innerHTML='📷<div style="font-size:11px;margin-top:4px;">사진 추가</div>';
-    addPhoto.onclick=()=>{document.getElementById('photoInput').dataset.bid=block.id;document.getElementById('photoInput').click();};
-    grid.appendChild(addPhoto);pb.appendChild(grid);wrap.appendChild(pb);
+    pb.appendChild(grid);wrap.appendChild(pb);
 
   }else if(block.type==='video'){
     const vb=document.createElement('div');
