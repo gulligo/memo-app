@@ -289,37 +289,46 @@ function createBlockEl(block){
     const grid=document.createElement('div');
     grid.className='photo-grid';
     (block.photos||[]).forEach((p,i)=>{
+      if(!block.transforms) block.transforms={};
+      if(!block.transforms[i]) block.transforms[i]={rotate:0,scale:1,x:0,y:0};
+      const t=block.transforms[i];
       const pw=document.createElement('div');
       pw.className='photo-wrap';
+      pw.style.cssText='position:relative;width:100%;min-height:200px;overflow:visible;border-radius:8px;background:#f0f0f0;';
       const img=document.createElement('img');
       img.src=p;
-      img.onclick=()=>openViewer(block.photos,i);
+      img.style.cssText=`width:100%;display:block;border-radius:8px;transform-origin:center;transform:translate(${t.x}px,${t.y}px) rotate(${t.rotate}deg) scale(${t.scale});touch-action:none;`;
+      let pDist=0,pAngle=0,pScale=1,pRotate=0,pX=0,pY=0,lx=0,ly=0,dragging=false;
+      img.addEventListener('touchstart',e=>{
+        e.preventDefault();e.stopPropagation();
+        if(e.touches.length===2){
+          pDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+          pAngle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
+          pScale=t.scale;pRotate=t.rotate;
+        }else{
+          dragging=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;pX=t.x;pY=t.y;
+        }
+      },{passive:false});
+      img.addEventListener('touchmove',e=>{
+        e.preventDefault();e.stopPropagation();
+        if(e.touches.length===2){
+          const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+          const angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
+          t.scale=Math.min(3,Math.max(0.3,pScale*(dist/pDist)));
+          t.rotate=pRotate+(angle-pAngle);
+        }else if(dragging){
+          t.x=pX+(e.touches[0].clientX-lx);
+          t.y=pY+(e.touches[0].clientY-ly);
+        }
+        img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.rotate}deg) scale(${t.scale})`;
+      },{passive:false});
+      img.addEventListener('touchend',()=>{dragging=false;});
       const pd=document.createElement('button');
       pd.className='photo-del';
       pd.textContent='✕';
-      pd.onclick=(e)=>{e.stopPropagation();collectMemoBlocks();const b=currentMemo.blocks.find(x=>x.id===block.id);b.photos.splice(i,1);renderMemoBody();};
-      if(!block.transforms) block.transforms={};
-      if(!block.transforms[i]) block.transforms[i]={rotate:0,scale:1};
-      const t=block.transforms[i];
-      img.style.transform=`rotate(${t.rotate}deg) scale(${t.scale})`;
-      pw.appendChild(img);pw.appendChild(pd);
-      const ctrl=document.createElement('div');
-      ctrl.className='photo-controls';
-      const rLabel=document.createElement('span');
-      rLabel.textContent='↻';
-      const rSlider=document.createElement('input');
-      rSlider.type='range';rSlider.min=-180;rSlider.max=180;rSlider.value=t.rotate;
-      rSlider.oninput=()=>{t.rotate=Number(rSlider.value);img.style.transform=`rotate(${t.rotate}deg) scale(${t.scale})`;};
-      const sLabel=document.createElement('span');
-      sLabel.textContent='⤢';
-      const sSlider=document.createElement('input');
-      sSlider.type='range';sSlider.min=50;sSlider.max=200;sSlider.value=t.scale*100;
-      sSlider.oninput=()=>{t.scale=Number(sSlider.value)/100;img.style.transform=`rotate(${t.rotate}deg) scale(${t.scale})`;};
-      ctrl.appendChild(rLabel);ctrl.appendChild(rSlider);ctrl.appendChild(sLabel);ctrl.appendChild(sSlider);
-      grid.appendChild(pw);grid.appendChild(ctrl);
+      pd.onclick=(e)=>{e.stopPropagation();collectMemoBlocks();const b=currentMemo.blocks.find(x=>x.id===block.id);b.photos.splice(i,1);if(b.transforms)delete b.transforms[i];renderMemoBody();};
+      pw.appendChild(img);pw.appendChild(pd);grid.appendChild(pw);
     });
-    pb.appendChild(grid);wrap.appendChild(pb);
-
   }else if(block.type==='video'){
     const vb=document.createElement('div');
     vb.className='video-block';
