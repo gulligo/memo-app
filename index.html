@@ -318,7 +318,6 @@ function createCheckItem(item){
   cb.addEventListener('change',()=>txt.classList.toggle('done',cb.checked));
   ci.appendChild(cb);ci.appendChild(txt);return ci;
 }
-[4/4] 👇
 function addTextBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'text',content:''});renderMemoBody();}
 function addChecklistBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'checklist',items:[{text:'',done:false}]});renderMemoBody();}
 function addPhotoBlock(){
