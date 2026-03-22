@@ -370,13 +370,9 @@ function addChecklistBlock(){
 }
 function addPhotoBlock(){
   if(!currentMemo)return;
-  const block={id:uid(),type:'photo',photos:[],transforms:[]};
-  currentMemo.blocks.push(block);
-  renderMemoBody();
-  setTimeout(()=>{
-    document.getElementById('photoInput').dataset.bid=block.id;
-    document.getElementById('photoInput').click();
-  },100);
+  document.getElementById('photoInput').dataset.bid='new';
+  document.getElementById('photoInput').click();
+}
 }
 function addVideoBlock(){
   if(!currentMemo)return;
@@ -388,19 +384,15 @@ function getYoutubeEmbedUrl(url){
   const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
   return m?`https://www.youtube.com/embed/${m[1]}`:null;
 }
-
 document.getElementById('photoInput').addEventListener('change',function(e){
-  const bid=this.dataset.bid;
   const files=Array.from(e.target.files);
   if(!files.length)return;
-  const block=currentMemo.blocks.find(x=>x.id===bid);
-  if(!block)return;
   let loaded=0;
   files.forEach(file=>{
     const reader=new FileReader();
     reader.onload=ev=>{
-      block.photos.push(ev.target.result);
-      block.transforms.push({r:0,s:1,x:0,y:0});
+      const block={id:uid(),type:'photo',photos:[ev.target.result],transforms:[{r:0,s:1,x:0,y:0}]};
+      currentMemo.blocks.push(block);
       loaded++;
       if(loaded===files.length)renderMemoBody();
     };
@@ -408,6 +400,7 @@ document.getElementById('photoInput').addEventListener('change',function(e){
   });
   this.value='';
 });
+
 
 function showModal(title,placeholder,callback){
   document.getElementById('modalTitle').textContent=title;
