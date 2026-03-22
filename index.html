@@ -36,7 +36,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .toolbar{background:#fff;border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;}
 .tool-btn{border:none;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;}
 .block{margin-bottom:8px;position:relative;}
-.text-view{background:var(--card);border-radius:10px;padding:10px 12px;font-size:15px;color:var(--text);min-height:44px;box-shadow:0 1px 3px rgba(0,0,0,.06);white-space:pre-wrap;word-break:break-word;user-select:none;}
+.text-view{border-radius:10px;padding:10px 12px;font-size:15px;color:var(--text);min-height:44px;white-space:pre-wrap;word-break:break-word;user-select:none;}
 .text-view.empty{color:var(--muted);}
 .text-edit{display:none;width:100%;min-height:44px;border:2px solid var(--primary);background:var(--card);border-radius:10px;padding:10px 12px;font-size:15px;color:var(--text);outline:none;resize:none;font-family:inherit;}
 .text-edit.show{display:block;}
@@ -55,7 +55,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .photo-block{background:var(--card);border-radius:10px;padding:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .photo-item{position:relative;margin-bottom:6px;}
 .photo-item img{width:100%;display:block;border-radius:8px;transform-origin:center center;}
-.photo-item.editing{outline:3px solid var(--primary);border-radius:8px;}
+.photo-item.editing{border-radius:8px;}
 .photo-done-btn{display:none;position:absolute;bottom:8px;right:8px;background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;}
 .photo-item.editing .photo-done-btn{display:block;}
 .photo-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;}
