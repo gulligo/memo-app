@@ -58,6 +58,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .video-url-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px;}
 .video-add-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:600;cursor:pointer;}
 .block-del{position:absolute;top:8px;right:8px;background:var(--red);color:#fff;border:none;border-radius:50%;width:24px;height:24px;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;}
+  .text-wrap > .block-del{display:none;}
 .modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:400;align-items:flex-end;}
 .modal-overlay.show{display:flex;}
 .modal{background:var(--card);border-radius:16px 16px 0 0;padding:20px 16px;width:100%;}
@@ -203,8 +204,9 @@ function renderMemoBody(){
 }
 function createBlockEl(block){
   const wrap=document.createElement('div');wrap.className='block';wrap.dataset.bid=block.id;
-  const del=document.createElement('button');del.className='block-del';del.textContent='✕';
-  del.addEventListener('click',()=>{collectMemoBlocks();currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+const del=document.createElement('button');del.className='block-del';del.textContent='✕';
+del.addEventListener('click',()=>{collectMemoBlocks();currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+if(block.type==='text'){wrap.classList.add('text-wrap');}
 
   if(block.type==='text'){
     const ta=document.createElement('textarea');ta.className='text-block';
