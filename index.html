@@ -230,13 +230,13 @@ function createBlockEl(block){
       const img=document.createElement('img');img.src=p;
       img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
 
-      const editBtn=document.createElement('button');editBtn.className='photo-edit-btn';editBtn.textContent='편집';
-      const doneBtn=document.createElement('button');doneBtn.className='photo-done-btn';doneBtn.textContent='완료';
-
-      editBtn.addEventListener('click',e=>{
-        e.stopPropagation();
-        pi.classList.add('editing');
-      });
+      let pressTimer=null;
+pi.addEventListener('touchstart',e=>{
+  if(pi.classList.contains('editing'))return;
+  pressTimer=setTimeout(()=>{pi.classList.add('editing');},600);
+},{passive:true});
+pi.addEventListener('touchend',()=>clearTimeout(pressTimer));
+pi.addEventListener('touchmove',()=>clearTimeout(pressTimer));
 
       doneBtn.addEventListener('click',e=>{
         e.stopPropagation();
@@ -289,7 +289,7 @@ function createBlockEl(block){
         renderMemoBody();
       });
 
-      pi.appendChild(img);pi.appendChild(editBtn);pi.appendChild(doneBtn);pi.appendChild(pd);
+      pi.appendChild(img);pi.appendChild(doneBtn);pi.appendChild(pd);
       pb.appendChild(pi);
     });
     wrap.appendChild(pb);
