@@ -44,9 +44,15 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .check-item-text.done{text-decoration:line-through;color:var(--muted);}
 .add-check-btn{display:flex;align-items:center;gap:6px;color:var(--primary);font-size:14px;border:none;background:none;padding:8px 0;cursor:pointer;width:100%;}
 .photo-block{background:var(--card);border-radius:10px;padding:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
-.photo-item{position:relative;margin-bottom:6px;touch-action:none;user-select:none;overflow:hidden;border-radius:8px;height:250px;}
-.photo-item img{width:100%;height:100%;display:block;border-radius:8px;transform-origin:center center;pointer-events:none;object-fit:cover;}
-.photo-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;touch-action:auto;}
+.photo-item{position:relative;margin-bottom:6px;border-radius:8px;overflow:hidden;height:250px;background:#f0f0f0;}
+.photo-item img{width:100%;height:100%;display:block;object-fit:cover;transform-origin:center center;pointer-events:none;}
+.photo-item.editing{border:3px solid var(--primary);touch-action:none;}
+.photo-item.editing img{pointer-events:auto;}
+.photo-edit-btn{position:absolute;bottom:6px;right:6px;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;}
+.photo-done-btn{position:absolute;bottom:6px;right:6px;background:#34c759;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;display:none;}
+.photo-item.editing .photo-edit-btn{display:none;}
+.photo-item.editing .photo-done-btn{display:block;}
+.photo-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;}
 .video-block{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:8px;}
 .video-frame{width:100%;aspect-ratio:16/9;border:none;border-radius:8px;}
 .video-url-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px;}
@@ -69,7 +75,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 </style>
 </head>
 <body>
-  <div class="header">
+<div class="header">
   <div class="header-title">용용이 메모장</div>
   <button class="icon-btn" onclick="showAddGroupModal()">➕</button>
 </div>
@@ -225,20 +231,46 @@ function createBlockEl(block){
       const pi=document.createElement('div');pi.className='photo-item';
       const img=document.createElement('img');img.src=p;
       img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
-      // 터치 제스처
+
+      // 편집 버튼
+      const editBtn=document.createElement('button');editBtn.className='photo-edit-btn';editBtn.textContent='편집';
+      const doneBtn=document.createElement('button');doneBtn.className='photo-done-btn';doneBtn.textContent='완료';
+
+      // 편집모드 진입
+      editBtn.addEventListener('click',e=>{
+        e.stopPropagation();
+        pi.classList.add('editing');
+        pi.style.touchAction='none';
+      });
+
+      // 완료 버튼 - 저장
+      doneBtn.addEventListener('click',e=>{
+        e.stopPropagation();
+        pi.classList.remove('editing');
+        pi.style.touchAction='';
+        collectMemoBlocks();
+        const b=currentMemo.blocks.find(x=>x.id===block.id);
+        if(b){if(!b.transforms)b.transforms=[];b.transforms[i]={r:t.r,s:t.s,x:t.x,y:t.y};}
+      });
+
+      // 터치 제스처 (편집모드일 때만)
       let p1={dist:0,angle:0,scale:1,rotate:0,x:0,y:0};
       let dragging=false,lx=0,ly=0,sx=t.x,sy=t.y;
+
       pi.addEventListener('touchstart',e=>{
+        if(!pi.classList.contains('editing'))return;
         e.stopPropagation();
         if(e.touches.length===2){
           p1.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
           p1.angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
           p1.scale=t.s;p1.rotate=t.r;
-        }else if(e.touches.length===1){
+        }else{
           dragging=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;sx=t.x;sy=t.y;
         }
       },{passive:true});
+
       pi.addEventListener('touchmove',e=>{
+        if(!pi.classList.contains('editing'))return;
         e.preventDefault();e.stopPropagation();
         if(e.touches.length===2){
           const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
@@ -251,7 +283,9 @@ function createBlockEl(block){
         }
         img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
       },{passive:false});
+
       pi.addEventListener('touchend',e=>{if(e.touches.length===0)dragging=false;});
+
       const pd=document.createElement('button');pd.className='photo-del';pd.textContent='✕';
       pd.addEventListener('click',e=>{
         e.stopPropagation();collectMemoBlocks();
@@ -259,7 +293,9 @@ function createBlockEl(block){
         b.photos.splice(i,1);if(b.transforms)b.transforms.splice(i,1);
         renderMemoBody();
       });
-      pi.appendChild(img);pi.appendChild(pd);pb.appendChild(pi);
+
+      pi.appendChild(img);pi.appendChild(editBtn);pi.appendChild(doneBtn);pi.appendChild(pd);
+      pb.appendChild(pi);
     });
     wrap.appendChild(pb);
 
@@ -287,7 +323,7 @@ function createCheckItem(item){
   cb.addEventListener('change',()=>txt.classList.toggle('done',cb.checked));
   ci.appendChild(cb);ci.appendChild(txt);return ci;
 }
-  function addTextBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'text',content:''});renderMemoBody();}
+function addTextBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'text',content:''});renderMemoBody();}
 function addChecklistBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'checklist',items:[{text:'',done:false}]});renderMemoBody();}
 function addPhotoBlock(){
   if(!currentMemo)return;
