@@ -110,7 +110,6 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
   <div class="ctx-item danger" id="ctxDelete">삭제</div>
 </div>
 <input type="file" id="photoInput" accept="image/*" multiple style="display:none" />
-[2/4] 👇
 <script>
 const KEY='memo_app_v1';
 function loadData(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{groups:[]};}catch(e){return{groups:[]};}}
@@ -202,7 +201,6 @@ function renderMemoBody(){
   body.innerHTML='';
   (currentMemo.blocks||[]).forEach(b=>body.appendChild(createBlockEl(b)));
 }
-[3/4] 👇
 function createBlockEl(block){
   const wrap=document.createElement('div');wrap.className='block';wrap.dataset.bid=block.id;
   const del=document.createElement('button');del.className='block-del';del.textContent='✕';
