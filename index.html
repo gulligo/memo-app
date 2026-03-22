@@ -327,8 +327,9 @@ function addChecklistBlock(){if(!currentMemo)return;collectMemoBlocks();currentM
 function addPhotoBlock(){
   if(!currentMemo)return;
   const block={id:uid(),type:'photo',photos:[],transforms:[]};
-  currentMemo.blocks.push(block);renderMemoBody();
-  setTimeout(()=>{document.getElementById('photoInput').dataset.bid=block.id;document.getElementById('photoInput').click();},100);
+  currentMemo.blocks.push(block);
+  document.getElementById('photoInput').dataset.bid=block.id;
+  document.getElementById('photoInput').click();
 }
 function addVideoBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'video',url:''});renderMemoBody();}
 
