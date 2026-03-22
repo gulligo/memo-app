@@ -177,7 +177,7 @@ function saveMemo(){
   const idx=g.subs.findIndex(x=>x.id===currentSubId);
   collectMemoBlocks();
   g.subs[idx]=JSON.parse(JSON.stringify(currentMemo));
-  saveData();render();closeMemo();
+  saveData();render();
 }
 
 function collectMemoBlocks(){
