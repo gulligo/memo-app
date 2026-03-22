@@ -178,6 +178,8 @@ function saveMemo(){
   collectMemoBlocks();
   g.subs[idx]=JSON.parse(JSON.stringify(currentMemo));
   saveData();render();
+  const btn=document.querySelector('.memo-header .icon-btn:last-child');
+  if(btn){btn.textContent='✓';setTimeout(()=>btn.textContent='저장',1000);}
 }
 
 function collectMemoBlocks(){
@@ -325,7 +327,12 @@ function addChecklistBlock(){if(!currentMemo)return;collectMemoBlocks();currentM
 function addPhotoBlock(){
   if(!currentMemo)return;
   const block={id:uid(),type:'photo',photos:[],transforms:[]};
-  collectMemoBlocks();currentMemo.blocks.push(block);renderMemoBody();
+  function addPhotoBlock(){
+  if(!currentMemo)return;
+  const block={id:uid(),type:'photo',photos:[],transforms:[]};
+  currentMemo.blocks.push(block);renderMemoBody();
+  setTimeout(()=>{document.getElementById('photoInput').dataset.bid=block.id;document.getElementById('photoInput').click();},100);
+}
   setTimeout(()=>{document.getElementById('photoInput').dataset.bid=block.id;document.getElementById('photoInput').click();},100);
 }
 function addVideoBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'video',url:''});renderMemoBody();}
