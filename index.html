@@ -30,7 +30,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .memo-view{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;flex-direction:column;}
 .memo-view.show{display:flex;}
 .memo-header{background:#fff;border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
-.memo-title-input{font-size:17px;font-weight:700;border:none;background:none;flex:1;outline:none;margin:0 10px;}
+.memo-title{font-size:17px;font-weight:700;flex:1;margin:0 10px;color:var(--text);}
 .memo-body{flex:1;overflow-y:auto;padding:12px;-webkit-overflow-scrolling:touch;}
 .toolbar{background:#fff;border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;}
 .tool-btn{border:none;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;}
@@ -45,11 +45,11 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .add-check-btn{display:flex;align-items:center;gap:6px;color:var(--primary);font-size:14px;border:none;background:none;padding:8px 0;cursor:pointer;width:100%;}
 .photo-block{background:var(--card);border-radius:10px;padding:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .photo-item{position:relative;margin-bottom:6px;border-radius:8px;overflow:hidden;height:250px;background:#f0f0f0;}
-.photo-item img{width:100%;height:100%;display:block;object-fit:cover;transform-origin:center center;pointer-events:none;}
+.photo-item img{width:100%;height:100%;display:block;object-fit:cover;transform-origin:center center;pointer-events:none;transition:transform .05s;}
 .photo-item.editing{border:3px solid var(--primary);touch-action:none;}
 .photo-item.editing img{pointer-events:auto;}
 .photo-edit-btn{position:absolute;bottom:6px;right:6px;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;}
-.photo-done-btn{position:absolute;bottom:6px;right:6px;background:#34c759;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;display:none;}
+.photo-done-btn{display:none;position:absolute;bottom:6px;right:6px;background:#34c759;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;}
 .photo-item.editing .photo-edit-btn{display:none;}
 .photo-item.editing .photo-done-btn{display:block;}
 .photo-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;}
@@ -83,7 +83,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 <div class="memo-view" id="memoView">
   <div class="memo-header">
     <button class="icon-btn" onclick="closeMemo()">‹</button>
-    <input class="memo-title-input" id="memoTitleInput" placeholder="제목" />
+    <div class="memo-title" id="memoTitle"></div>
     <button class="icon-btn" onclick="saveMemo()">저장</button>
   </div>
   <div class="memo-body" id="memoBody"></div>
@@ -163,7 +163,7 @@ function openMemo(gid,sid){
   const g=data.groups.find(x=>x.id===gid);
   const s=g.subs.find(x=>x.id===sid);
   currentMemo=JSON.parse(JSON.stringify(s));
-  document.getElementById('memoTitleInput').value=s.name;
+  document.getElementById('memoTitle').textContent=s.name;
   renderMemoBody();
   document.getElementById('memoView').classList.add('show');
 }
@@ -174,7 +174,6 @@ function saveMemo(){
   if(!currentMemo)return;
   const g=data.groups.find(x=>x.id===currentGroupId);
   const idx=g.subs.findIndex(x=>x.id===currentSubId);
-  currentMemo.name=document.getElementById('memoTitleInput').value||'제목없음';
   collectMemoBlocks();
   g.subs[idx]=JSON.parse(JSON.stringify(currentMemo));
   saveData();render();closeMemo();
@@ -202,7 +201,6 @@ function renderMemoBody(){
   body.innerHTML='';
   (currentMemo.blocks||[]).forEach(b=>body.appendChild(createBlockEl(b)));
 }
-
 function createBlockEl(block){
   const wrap=document.createElement('div');wrap.className='block';wrap.dataset.bid=block.id;
   const del=document.createElement('button');del.className='block-del';del.textContent='✕';
@@ -232,30 +230,27 @@ function createBlockEl(block){
       const img=document.createElement('img');img.src=p;
       img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
 
-      // 편집 버튼
       const editBtn=document.createElement('button');editBtn.className='photo-edit-btn';editBtn.textContent='편집';
       const doneBtn=document.createElement('button');doneBtn.className='photo-done-btn';doneBtn.textContent='완료';
 
-      // 편집모드 진입
       editBtn.addEventListener('click',e=>{
         e.stopPropagation();
         pi.classList.add('editing');
-        pi.style.touchAction='none';
       });
 
-      // 완료 버튼 - 저장
       doneBtn.addEventListener('click',e=>{
         e.stopPropagation();
         pi.classList.remove('editing');
-        pi.style.touchAction='';
-        collectMemoBlocks();
+        // 현재 transform 값을 currentMemo에 직접 저장
         const b=currentMemo.blocks.find(x=>x.id===block.id);
-        if(b){if(!b.transforms)b.transforms=[];b.transforms[i]={r:t.r,s:t.s,x:t.x,y:t.y};}
+        if(b){
+          if(!b.transforms)b.transforms=[];
+          b.transforms[i]={r:t.r,s:t.s,x:t.x,y:t.y};
+        }
       });
 
-      // 터치 제스처 (편집모드일 때만)
-      let p1={dist:0,angle:0,scale:1,rotate:0,x:0,y:0};
-      let dragging=false,lx=0,ly=0,sx=t.x,sy=t.y;
+      let p1={dist:0,angle:0,scale:1,rotate:0};
+      let dragging=false,lx=0,ly=0,sx=0,sy=0;
 
       pi.addEventListener('touchstart',e=>{
         if(!pi.classList.contains('editing'))return;
@@ -264,7 +259,7 @@ function createBlockEl(block){
           p1.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
           p1.angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
           p1.scale=t.s;p1.rotate=t.r;
-        }else{
+        }else if(e.touches.length===1){
           dragging=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;sx=t.x;sy=t.y;
         }
       },{passive:true});
@@ -323,6 +318,7 @@ function createCheckItem(item){
   cb.addEventListener('change',()=>txt.classList.toggle('done',cb.checked));
   ci.appendChild(cb);ci.appendChild(txt);return ci;
 }
+[4/4] 👇
 function addTextBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'text',content:''});renderMemoBody();}
 function addChecklistBlock(){if(!currentMemo)return;collectMemoBlocks();currentMemo.blocks.push({id:uid(),type:'checklist',items:[{text:'',done:false}]});renderMemoBody();}
 function addPhotoBlock(){
