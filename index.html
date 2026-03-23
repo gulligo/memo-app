@@ -271,7 +271,7 @@ function renderMemoBody(){
       const t=block.transforms[i];
       const pi=document.createElement('div');pi.className='photo-item';
       const img=document.createElement('img');img.src=p;
-      img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
+      img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
       const doneBtn=document.createElement('button');doneBtn.className='photo-done-btn';doneBtn.textContent='완료';
       doneBtn.addEventListener('click',e=>{
         e.stopPropagation();
@@ -316,7 +316,7 @@ function renderMemoBody(){
           t.x=sx+(e.touches[0].clientX-lx);
           t.y=sy+(e.touches[0].clientY-ly);
         }
-        img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
+        img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
       },{passive:false});
       pi.addEventListener('touchend',e=>{clearTimeout(pt);if(e.touches.length===0)dragging=false;});
       pi.appendChild(img);pi.appendChild(doneBtn);pi.appendChild(pd);
