@@ -513,27 +513,41 @@ function renderMemoBody(){
 
     st.addEventListener('input',()=>{block.text=st.value;});
 
-    biggerBtn.addEventListener('click',()=>{
-      let h=parseInt(st.style.height)||120;
-      let fs=parseInt(st.style.fontSize)||14;
-      h+=40; fs+=2;
-      st.style.height=h+'px';
-      st.style.fontSize=fs+'px';
-      block.textHeight=h;
-      block.fontSize=fs;
-    });
+biggerBtn.addEventListener('click',()=>{
+  let h=parseInt(st.style.height)||120;
+  let fs=parseInt(st.style.fontSize)||14;
+  let w=parseInt(textWrap.style.width)||40;
 
-    smallerBtn.addEventListener('click',()=>{
-      let h=parseInt(st.style.height)||120;
-      let fs=parseInt(st.style.fontSize)||14;
-      h=Math.max(80,h-40);
-      fs=Math.max(10,fs-2);
-      st.style.height=h+'px';
-      st.style.fontSize=fs+'px';
-      block.textHeight=h;
-      block.fontSize=fs;
-    });
+  h+=80;
+  fs+=4;
+  w=Math.min(80,w+10);
 
+  st.style.height=h+'px';
+  st.style.fontSize=fs+'px';
+  textWrap.style.width=w+'%';
+
+  block.textHeight=h;
+  block.fontSize=fs;
+  block.textWidth=w+'%';
+});
+
+smallerBtn.addEventListener('click',()=>{
+  let h=parseInt(st.style.height)||120;
+  let fs=parseInt(st.style.fontSize)||14;
+  let w=parseInt(textWrap.style.width)||40;
+
+  h=Math.max(80,h-80);
+  fs=Math.max(10,fs-4);
+  w=Math.max(20,w-10);
+
+  st.style.height=h+'px';
+  st.style.fontSize=fs+'px';
+  textWrap.style.width=w+'%';
+
+  block.textHeight=h;
+  block.fontSize=fs;
+  block.textWidth=w+'%';
+});
     btnRow.appendChild(smallerBtn);
     btnRow.appendChild(biggerBtn);
     textWrap.appendChild(btnRow);
