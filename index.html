@@ -62,7 +62,21 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .split-block{display:flex;gap:8px;border-radius:10px;padding:8px;margin-bottom:8px;}
 .split-photo{flex:1;border-radius:8px;overflow:hidden;}
 .split-photo img{width:100%;display:block;border-radius:8px;}
-.split-text{flex:1;border:none;background:var(--bg);border-radius:8px;padding:8px;font-size:14px;color:var(--text);outline:none;resize:none;font-family:inherit;min-height:100px;}
+.split-text{
+  flex:1;
+  border:none;
+  background:var(--bg);
+  border-radius:8px;
+  padding:8px;
+  font-size:14px;
+  color:var(--text);
+  outline:none;
+  resize:both;
+  font-family:inherit;
+  min-height:100px;
+  min-width:120px;
+  overflow:auto;
+}
 .video-block{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:8px;}
 .video-frame{width:100%;aspect-ratio:16/9;border:none;border-radius:8px;}
 .video-url-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px;}
@@ -427,9 +441,27 @@ function renderMemoBody(){
 
     sp.addEventListener('touchend',()=>clearTimeout(pt));
     sp.appendChild(img);
-    const st=document.createElement('textarea');st.className='split-text';
-    st.value=block.text||'';st.placeholder='텍스트 입력...';
-    st.addEventListener('input',()=>{block.text=st.value;});
+    const st=document.createElement('textarea');
+st.className='split-text';
+st.value=block.text||'';
+st.placeholder='텍스트 입력...';
+
+if(block.textWidth) st.style.width=block.textWidth + 'px';
+if(block.textHeight) st.style.height=block.textHeight + 'px';
+
+st.addEventListener('input',()=>{
+  block.text=st.value;
+});
+
+st.addEventListener('mouseup',()=>{
+  block.textWidth=st.offsetWidth;
+  block.textHeight=st.offsetHeight;
+});
+
+st.addEventListener('touchend',()=>{
+  block.textWidth=st.offsetWidth;
+  block.textHeight=st.offsetHeight;
+});
 
     const del=document.createElement('button');del.className='block-del';del.textContent='✕';
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
