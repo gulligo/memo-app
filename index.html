@@ -441,18 +441,63 @@ function renderMemoBody(){
 
     sp.addEventListener('touchend',()=>clearTimeout(pt));
     sp.appendChild(img);
-    const st=document.createElement('textarea');
+    const textWrap=document.createElement('div');
+textWrap.style.position='absolute';
+textWrap.style.top=(block.textTop ?? 8)+'px';
+textWrap.style.left=(block.textLeft ?? 52)+'%';
+textWrap.style.width=(block.textWidth ?? 40)+'%';
+
+const btnRow=document.createElement('div');
+btnRow.style.display='flex';
+btnRow.style.gap='6px';
+btnRow.style.marginBottom='6px';
+
+const biggerBtn=document.createElement('button');
+biggerBtn.textContent='크게';
+biggerBtn.type='button';
+
+const smallerBtn=document.createElement('button');
+smallerBtn.textContent='작게';
+smallerBtn.type='button';
+
+const st=document.createElement('textarea');
 st.className='split-text';
 st.value=block.text||'';
 st.placeholder='텍스트 입력...';
-
-if(block.textWidth) st.style.width=block.textWidth + 'px';
-if(block.textHeight) st.style.height=block.textHeight + 'px';
+st.style.width='100%';
+st.style.height=(block.textHeight ?? 120)+'px';
+st.style.fontSize=(block.fontSize ?? 14)+'px';
 
 st.addEventListener('input',()=>{
   block.text=st.value;
 });
 
+biggerBtn.addEventListener('click',()=>{
+  let h=parseInt(st.style.height)||120;
+  let fs=parseInt(st.style.fontSize)||14;
+  h+=40;
+  fs+=2;
+  st.style.height=h+'px';
+  st.style.fontSize=fs+'px';
+  block.textHeight=h;
+  block.fontSize=fs;
+});
+
+smallerBtn.addEventListener('click',()=>{
+  let h=parseInt(st.style.height)||120;
+  let fs=parseInt(st.style.fontSize)||14;
+  h=Math.max(80,h-40);
+  fs=Math.max(10,fs-2);
+  st.style.height=h+'px';
+  st.style.fontSize=fs+'px';
+  block.textHeight=h;
+  block.fontSize=fs;
+});
+
+btnRow.appendChild(smallerBtn);
+btnRow.appendChild(biggerBtn);
+textWrap.appendChild(btnRow);
+textWrap.appendChild(st);
 st.addEventListener('mouseup',()=>{
   block.textWidth=st.offsetWidth;
   block.textHeight=st.offsetHeight;
