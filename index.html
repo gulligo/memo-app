@@ -218,45 +218,48 @@ function renderMemoBody(){
   body.innerHTML='';
   (currentMemo.blocks||[]).forEach(b=>body.appendChild(createBlockEl(b)));
 }
-  function createBlockEl(block){
+
+function createBlockEl(block){
   const wrap=document.createElement('div');wrap.className='block';wrap.dataset.bid=block.id;
-    const handle=document.createElement('button');handle.className='block-handle';handle.textContent='☰';
-let dragStartY=0;
-handle.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  dragStartY=e.touches[0].clientY;
-  wrap.style.opacity='0.6';
-},{passive:false});
-handle.addEventListener('touchmove',e=>{
-  e.preventDefault();
-  const body=document.getElementById('memoBody');
-  const blocks=Array.from(body.querySelectorAll('.block'));
-  const y=e.touches[0].clientY;
-  const target=blocks.find(b=>{
-    if(b===wrap)return false;
-    const r=b.getBoundingClientRect();
-    return y>=r.top&&y<=r.bottom;
+  const handle=document.createElement('button');handle.className='block-handle';handle.textContent='☰';
+  let dragStartY=0;
+  handle.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    dragStartY=e.touches[0].clientY;
+    wrap.style.opacity='0.6';
+  },{passive:false});
+  handle.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    const body=document.getElementById('memoBody');
+    const blocks=Array.from(body.querySelectorAll('.block'));
+    const y=e.touches[0].clientY;
+    const target=blocks.find(b=>{
+      if(b===wrap)return false;
+      const r=b.getBoundingClientRect();
+      return y>=r.top&&y<=r.bottom;
+    });
+    if(target){
+      const idx=blocks.indexOf(wrap);
+      const tidx=blocks.indexOf(target);
+      if(tidx<idx)body.insertBefore(wrap,target);
+      else body.insertBefore(wrap,target.nextSibling);
+    }
+  },{passive:false});
+  handle.addEventListener('touchend',()=>{
+    wrap.style.opacity='1';
+    collectMemoBlocks();
+    renderMemoBody();
   });
-  if(target){
-    const idx=blocks.indexOf(wrap);
-    const tidx=blocks.indexOf(target);
-    if(tidx<idx)body.insertBefore(wrap,target);
-    else body.insertBefore(wrap,target.nextSibling);
-  }
-},{passive:false});
-handle.addEventListener('touchend',()=>{
-  wrap.style.opacity='1';
-  collectMemoBlocks();
-  renderMemoBody();
-});
-wrap.appendChild(handle);
-wrap.addEventListener('click',()=>{
-  document.querySelectorAll('.block-del,.block-handle').forEach(b=>b.style.display='none');
-  const d=wrap.querySelector('.block-del');
-  const h=wrap.querySelector('.block-handle');
-  if(d)d.style.display='flex';
-  if(h)h.style.display='flex';
-});
+  wrap.appendChild(handle);
+  wrap.addEventListener('click',()=>{
+    document.querySelectorAll('.block-del,.block-handle').forEach(b=>b.style.display='none');
+    const d=wrap.querySelector('.block-del');
+    const h=wrap.querySelector('.block-handle');
+    if(d)d.style.display='flex';
+    if(h)h.style.display='flex';
+  });
+
+  if(block.type==='text'){
     const view=document.createElement('div');
     view.className='text-view'+(block.content?'':' empty');
     view.textContent=block.content||'길게 눌러서 편집';
@@ -290,7 +293,6 @@ wrap.addEventListener('click',()=>{
       renderMemoBody();
     });
     wrap.appendChild(view);wrap.appendChild(edit);wrap.appendChild(doneBtn);wrap.appendChild(delBtn);
-  }
   }else if(block.type==='checklist'){
     const cl=document.createElement('div');cl.className='checklist-block';
     (block.items||[]).forEach(item=>cl.appendChild(createCheckItem(item)));
@@ -304,7 +306,6 @@ wrap.addEventListener('click',()=>{
     const del=document.createElement('button');del.className='block-del';del.textContent='✕';
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
     wrap.appendChild(del);
-
   }else if(block.type==='photo'){
     const pb=document.createElement('div');pb.className='photo-block';
     (block.photos||[]).forEach((p,i)=>{
@@ -368,7 +369,7 @@ wrap.addEventListener('click',()=>{
     const del=document.createElement('button');del.className='block-del';del.textContent='✕';
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
     wrap.appendChild(del);
-}else if(block.type==='split'){
+  }else if(block.type==='split'){
     if(!block.transform)block.transform={r:0,s:1};
     const t=block.transform;
     const sb=document.createElement('div');sb.className='split-block';
@@ -377,7 +378,6 @@ wrap.addEventListener('click',()=>{
     const img=document.createElement('img');img.src=block.photo;
     img.style.transform=`rotate(${t.r}deg) scale(${t.s})`;
     img.style.cssText+=';width:100%;display:block;border-radius:8px;transform-origin:center;';
-    // 길게 누르면 편집모드
     let pt=null,p1={dist:0,angle:0,scale:1,rotate:0};
     sp.addEventListener('touchstart',e=>{
       pt=setTimeout(()=>sp.classList.add('editing'),600);
@@ -439,7 +439,8 @@ function createCheckItem(item){
   cb.addEventListener('change',()=>txt.classList.toggle('done',cb.checked));
   ci.appendChild(cb);ci.appendChild(txt);return ci;
 }
-  function addTextBlock(){
+
+function addTextBlock(){
   if(!currentMemo)return;
   currentMemo.blocks.push({id:uid(),type:'text',content:''});
   renderMemoBody();
@@ -449,7 +450,7 @@ function addChecklistBlock(){
   currentMemo.blocks.push({id:uid(),type:'checklist',items:[{text:'',done:false}]});
   renderMemoBody();
 }
-  function addPhotoTextBlock(){
+function addPhotoTextBlock(){
   if(!currentMemo)return;
   document.getElementById('photoInput').dataset.bid='split';
   document.getElementById('photoInput').click();
@@ -469,6 +470,7 @@ function getYoutubeEmbedUrl(url){
   const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
   return m?`https://www.youtube.com/embed/${m[1]}`:null;
 }
+
 document.getElementById('photoInput').addEventListener('change',function(e){
   const bid=this.dataset.bid;
   const files=Array.from(e.target.files);
@@ -495,6 +497,7 @@ document.getElementById('photoInput').addEventListener('change',function(e){
   });
   this.value='';
 });
+
 function showModal(title,placeholder,callback){
   document.getElementById('modalTitle').textContent=title;
   document.getElementById('modalInput').value='';
