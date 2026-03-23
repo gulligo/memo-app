@@ -57,7 +57,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .photo-item img{width:100%;display:block;border-radius:8px;transform-origin:center center;}
 .photo-done-btn{display:none;position:absolute;bottom:8px;left:8px;background:var(--green);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;z-index:5;}
 .photo-item.editing .photo-done-btn{display:block;}
-.photo-del{display:none;}
+.photo-del{display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;}
+.photo-item.editing .photo-del{display:flex;}
 .video-block{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:8px;}
 .video-frame{width:100%;aspect-ratio:16/9;border:none;border-radius:8px;}
 .video-url-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px;}
