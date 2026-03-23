@@ -597,7 +597,16 @@ function createCheckItem(item){
 
 function addTextBlock(){
   if(!currentMemo)return;
-  currentMemo.blocks.push({id:uid(),type:'text',content:''});
+  currentMemo.blocks.push({
+    id:uid(),
+    type:'text',
+    content:'',
+    textTop:80,
+    textLeft:20,
+    textWidth:'45%',
+    textHeight:140,
+    fontSize:16
+  });
   renderMemoBody();
 }
 function addChecklistBlock(){
