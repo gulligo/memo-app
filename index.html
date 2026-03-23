@@ -88,7 +88,11 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
   <div class="header-title">용용이 메모장</div>
   <button class="icon-btn" onclick="showAddGroupModal()">➕</button>
 </div>
-<div class="main-view"><div id="groupList"></div></div>
+
+<div class="main-view">
+  <div id="groupList"></div>
+</div>
+
 <div class="memo-view" id="memoView">
   <div class="memo-header">
     <button class="back-btn" onclick="closeMemo()">‹</button>
@@ -103,6 +107,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
     <button class="tool-btn" onclick="addVideoBlock()">🎬 동영상</button>
   </div>
 </div>
+
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-title" id="modalTitle"></div>
@@ -113,62 +118,102 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
     </div>
   </div>
 </div>
+
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" id="ctxRename">이름 변경</div>
   <div class="ctx-item" id="ctxAddSub">소그룹 추가</div>
   <div class="ctx-item danger" id="ctxDelete">삭제</div>
 </div>
+
 <input type="file" id="photoInput" accept="image/*" multiple style="display:none" />
+
 <script>
 const KEY='memo_app_v1';
-function loadData(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{groups:[]};}catch(e){return{groups:[]};}}
-function saveData(){localStorage.setItem(KEY,JSON.stringify(data));}
+
+function loadData(){
+  try{
+    const r=localStorage.getItem(KEY);
+    return r ? JSON.parse(r) : {groups:[]};
+  }catch(e){
+    return {groups:[]};
+  }
+}
+
+function saveData(){
+  localStorage.setItem(KEY, JSON.stringify(data));
+}
+
 let data=loadData();
 let currentGroupId=null,currentSubId=null,currentMemo=null;
 let ctxTarget=null,ctxType=null,modalCallback=null;
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+
+function uid(){
+  return Date.now().toString(36)+Math.random().toString(36).slice(2);
+}
 
 function render(){
   const list=document.getElementById('groupList');
   list.innerHTML='';
+
   data.groups.forEach(g=>{
-    const item=document.createElement('div');item.className='group-item';
-    const header=document.createElement('div');header.className='group-header';
+    const item=document.createElement('div');
+    item.className='group-item';
+
+    const header=document.createElement('div');
+    header.className='group-header';
     header.innerHTML=`<div class="group-name">${g.name}</div><span class="group-arrow ${g.open?'open':''}">▶</span>`;
     header.addEventListener('click',()=>toggleGroup(g.id));
     header.addEventListener('contextmenu',e=>showCtx(e,'group',g.id));
+
     const children=document.createElement('div');
     children.className='group-children'+(g.open?' open':'');
+
     (g.subs||[]).forEach(s=>{
-      const si=document.createElement('div');si.className='sub-item';
+      const si=document.createElement('div');
+      si.className='sub-item';
       si.innerHTML=`<div><div class="sub-name">${s.name}</div><div class="sub-meta">${getSubMeta(s)}</div></div><span class="sub-arrow">›</span>`;
       si.addEventListener('click',()=>openMemo(g.id,s.id));
       si.addEventListener('contextmenu',e=>showCtx(e,'sub',s.id,g.id));
       children.appendChild(si);
     });
-    const addSub=document.createElement('div');addSub.className='sub-item';
+
+    const addSub=document.createElement('div');
+    addSub.className='sub-item';
     addSub.style.cssText='color:var(--primary);justify-content:center;';
     addSub.textContent='+ 소그룹 추가';
     addSub.addEventListener('click',()=>showAddSubModal(g.id));
     children.appendChild(addSub);
-    item.appendChild(header);item.appendChild(children);list.appendChild(item);
+
+    item.appendChild(header);
+    item.appendChild(children);
+    list.appendChild(item);
   });
 }
 
 function getSubMeta(s){
-  if(!s.blocks||!s.blocks.length)return '비어있음';
+  if(!s.blocks || !s.blocks.length) return '비어있음';
+
   const parts=[];
-  if(s.blocks.filter(b=>b.type==='text'&&b.content).length)parts.push('텍스트');
-  if(s.blocks.filter(b=>b.type==='checklist').length)parts.push('체크');
-  if(s.blocks.filter(b=>b.type==='photo').length)parts.push('사진');
-  if(s.blocks.filter(b=>b.type==='video'&&b.url).length)parts.push('동영상');
-  return parts.join(' · ')||'비어있음';
+  if(s.blocks.filter(b=>b.type==='text' && b.content).length) parts.push('텍스트');
+  if(s.blocks.filter(b=>b.type==='checklist').length) parts.push('체크');
+  if(s.blocks.filter(b=>b.type==='photo').length) parts.push('사진');
+  if(s.blocks.filter(b=>b.type==='video' && b.url).length) parts.push('동영상');
+
+  return parts.join(' · ') || '비어있음';
 }
 
-function toggleGroup(gid){const g=data.groups.find(x=>x.id===gid);if(g){g.open=!g.open;saveData();render();}}
+function toggleGroup(gid){
+  const g=data.groups.find(x=>x.id===gid);
+  if(g){
+    g.open=!g.open;
+    saveData();
+    render();
+  }
+}
 
 function openMemo(gid,sid){
-  currentGroupId=gid;currentSubId=sid;
+  currentGroupId=gid;
+  currentSubId=sid;
   const g=data.groups.find(x=>x.id===gid);
   const s=g.subs.find(x=>x.id===sid);
   currentMemo=JSON.parse(JSON.stringify(s));
@@ -182,34 +227,55 @@ function closeMemo(){
 }
 
 function saveMemo(){
-  if(!currentMemo)return;
+  if(!currentMemo) return;
+
   collectMemoBlocks();
+
   const g=data.groups.find(x=>x.id===currentGroupId);
   const idx=g.subs.findIndex(x=>x.id===currentSubId);
+
   document.querySelectorAll('.photo-item.editing').forEach(el=>el.classList.remove('editing'));
+
   g.subs[idx]=JSON.parse(JSON.stringify(currentMemo));
-  saveData();render();
+  saveData();
+  render();
+
   const btn=document.getElementById('saveBtn');
-  btn.textContent='✓';btn.style.background='var(--green)';
-  setTimeout(()=>{btn.textContent='저장';btn.style.background='var(--primary)';},1200);
+  btn.textContent='✓';
+  btn.style.background='var(--green)';
+
+  setTimeout(()=>{
+    btn.textContent='저장';
+    btn.style.background='var(--primary)';
+  },1200);
 }
 
 function collectMemoBlocks(){
   const nb=[];
+
   document.getElementById('memoBody').querySelectorAll('.block').forEach(b=>{
     const block=currentMemo.blocks.find(x=>x.id===b.dataset.bid);
-    if(!block)return;
+    if(!block) return;
+
     if(block.type==='text'){
       const edit=b.querySelector('.text-edit');
-      if(edit)block.content=edit.value;
+      if(edit) block.content=edit.value;
     }else if(block.type==='checklist'){
       block.items=[];
       b.querySelectorAll('.check-item').forEach(ci=>{
-        block.items.push({text:ci.querySelector('.check-item-text').value,done:ci.querySelector('input').checked});
+        block.items.push({
+          text:ci.querySelector('.check-item-text').value,
+          done:ci.querySelector('input').checked
+        });
       });
+    }else if(block.type==='split'){
+      const ta=b.querySelector('.split-text');
+      if(ta) block.text=ta.value;
     }
+
     nb.push(block);
   });
+
   currentMemo.blocks=nb;
 }
 
@@ -219,63 +285,93 @@ function renderMemoBody(){
   (currentMemo.blocks||[]).forEach(b=>body.appendChild(createBlockEl(b)));
 }
   function createBlockEl(block){
-  const wrap=document.createElement('div');wrap.className='block';wrap.dataset.bid=block.id;
-    const handle=document.createElement('button');handle.className='block-handle';handle.textContent='☰';
-let dragStartY=0;
-handle.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  dragStartY=e.touches[0].clientY;
-  wrap.style.opacity='0.6';
-},{passive:false});
-handle.addEventListener('touchmove',e=>{
-  e.preventDefault();
-  const body=document.getElementById('memoBody');
-  const blocks=Array.from(body.querySelectorAll('.block'));
-  const y=e.touches[0].clientY;
-  const target=blocks.find(b=>{
-    if(b===wrap)return false;
-    const r=b.getBoundingClientRect();
-    return y>=r.top&&y<=r.bottom;
+  const wrap=document.createElement('div');
+  wrap.className='block';
+  wrap.dataset.bid=block.id;
+
+  const handle=document.createElement('button');
+  handle.className='block-handle';
+  handle.textContent='☰';
+
+  handle.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    wrap.style.opacity='0.6';
+  },{passive:false});
+
+  handle.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    const body=document.getElementById('memoBody');
+    const blocks=Array.from(body.querySelectorAll('.block'));
+    const y=e.touches[0].clientY;
+
+    const target=blocks.find(b=>{
+      if(b===wrap) return false;
+      const r=b.getBoundingClientRect();
+      return y>=r.top && y<=r.bottom;
+    });
+
+    if(target){
+      const idx=blocks.indexOf(wrap);
+      const tidx=blocks.indexOf(target);
+      if(tidx<idx) body.insertBefore(wrap,target);
+      else body.insertBefore(wrap,target.nextSibling);
+    }
+  },{passive:false});
+
+  handle.addEventListener('touchend',()=>{
+    wrap.style.opacity='1';
+    collectMemoBlocks();
+    renderMemoBody();
   });
-  if(target){
-    const idx=blocks.indexOf(wrap);
-    const tidx=blocks.indexOf(target);
-    if(tidx<idx)body.insertBefore(wrap,target);
-    else body.insertBefore(wrap,target.nextSibling);
-  }
-},{passive:false});
-handle.addEventListener('touchend',()=>{
-  wrap.style.opacity='1';
-  collectMemoBlocks();
-  renderMemoBody();
-});
-wrap.appendChild(handle);
-wrap.addEventListener('click',()=>{
-  document.querySelectorAll('.block-del,.block-handle').forEach(b=>b.style.display='none');
-  const d=wrap.querySelector('.block-del');
-  const h=wrap.querySelector('.block-handle');
-  if(d)d.style.display='flex';
-  if(h)h.style.display='flex';
-});
+
+  wrap.appendChild(handle);
+
+  wrap.addEventListener('click',()=>{
+    document.querySelectorAll('.block-del,.block-handle').forEach(b=>b.style.display='none');
+    const d=wrap.querySelector('.block-del');
+    const h=wrap.querySelector('.block-handle');
+    if(d)d.style.display='flex';
+    if(h)h.style.display='flex';
+  });
+
+  if(block.type==='text'){
     const view=document.createElement('div');
     view.className='text-view'+(block.content?'':' empty');
     view.textContent=block.content||'길게 눌러서 편집';
-    const edit=document.createElement('textarea');edit.className='text-edit';
-    edit.value=block.content||'';edit.placeholder='내용 입력...';
-    edit.addEventListener('input',()=>{edit.style.height='auto';edit.style.height=edit.scrollHeight+'px';});
-    const doneBtn=document.createElement('button');doneBtn.className='text-done-btn';doneBtn.textContent='완료';
-    const delBtn=document.createElement('button');delBtn.className='text-del-btn';delBtn.textContent='삭제';
+
+    const edit=document.createElement('textarea');
+    edit.className='text-edit';
+    edit.value=block.content||'';
+    edit.placeholder='내용 입력...';
+
+    edit.addEventListener('input',()=>{
+      edit.style.height='auto';
+      edit.style.height=edit.scrollHeight+'px';
+    });
+
+    const doneBtn=document.createElement('button');
+    doneBtn.className='text-done-btn';
+    doneBtn.textContent='완료';
+
+    const delBtn=document.createElement('button');
+    delBtn.className='text-del-btn';
+    delBtn.textContent='삭제';
+
     let pressTimer=null;
-    view.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>{
-      view.style.display='none';
-      edit.classList.add('show');
-      doneBtn.classList.add('show');
-      delBtn.classList.add('show');
-      edit.style.height='auto';edit.style.height=edit.scrollHeight+'px';
-      edit.focus();
-    },600);},{passive:true});
+
+    view.addEventListener('touchstart',()=>{
+      pressTimer=setTimeout(()=>{
+        view.style.display='none';
+        edit.classList.add('show');
+        doneBtn.classList.add('show');
+        delBtn.classList.add('show');
+        edit.focus();
+      },600);
+    });
+
     view.addEventListener('touchend',()=>clearTimeout(pressTimer));
     view.addEventListener('touchmove',()=>clearTimeout(pressTimer));
+
     doneBtn.addEventListener('click',()=>{
       block.content=edit.value;
       view.textContent=edit.value||'길게 눌러서 편집';
@@ -285,179 +381,214 @@ wrap.addEventListener('click',()=>{
       doneBtn.classList.remove('show');
       delBtn.classList.remove('show');
     });
+
     delBtn.addEventListener('click',()=>{
       currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
       renderMemoBody();
     });
-    wrap.appendChild(view);wrap.appendChild(edit);wrap.appendChild(doneBtn);wrap.appendChild(delBtn);
-  }else if(block.type==='checklist'){
-    const cl=document.createElement('div');cl.className='checklist-block';
+
+    wrap.appendChild(view);
+    wrap.appendChild(edit);
+    wrap.appendChild(doneBtn);
+    wrap.appendChild(delBtn);
+    }else if(block.type==='checklist'){
+    const cl=document.createElement('div');
+    cl.className='checklist-block';
+
     (block.items||[]).forEach(item=>cl.appendChild(createCheckItem(item)));
-    const addBtn=document.createElement('button');addBtn.className='add-check-btn';addBtn.textContent='＋ 항목 추가';
+
+    const addBtn=document.createElement('button');
+    addBtn.className='add-check-btn';
+    addBtn.textContent='＋ 항목 추가';
+
     addBtn.addEventListener('click',()=>{
       collectMemoBlocks();
       currentMemo.blocks.find(x=>x.id===block.id).items.push({text:'',done:false});
       renderMemoBody();
     });
-    cl.appendChild(addBtn);wrap.appendChild(cl);
-    const del=document.createElement('button');del.className='block-del';del.textContent='✕';
-    del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+
+    cl.appendChild(addBtn);
+    wrap.appendChild(cl);
+
+    const del=document.createElement('button');
+    del.className='block-del';
+    del.textContent='✕';
+
+    del.addEventListener('click',()=>{
+      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
+      renderMemoBody();
+    });
+
     wrap.appendChild(del);
 
   }else if(block.type==='photo'){
-    const pb=document.createElement('div');pb.className='photo-block';
+    const pb=document.createElement('div');
+    pb.className='photo-block';
+
     (block.photos||[]).forEach((p,i)=>{
-      if(!block.transforms)block.transforms=[];
-      if(!block.transforms[i])block.transforms[i]={r:0,s:1,x:0,y:0};
-      const t=block.transforms[i];
-      const pi=document.createElement('div');pi.className='photo-item';
-      const img=document.createElement('img');img.src=p;
-      img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
-      const doneBtn=document.createElement('button');doneBtn.className='photo-done-btn';doneBtn.textContent='완료';
-      doneBtn.addEventListener('click',e=>{
-        e.stopPropagation();
-        pi.classList.remove('editing');
-        const b=currentMemo.blocks.find(x=>x.id===block.id);
-        if(b){if(!b.transforms)b.transforms=[];b.transforms[i]={r:t.r,s:t.s,x:t.x,y:t.y};}
-      });
-      const pd=document.createElement('button');pd.className='photo-del';pd.textContent='✕';
+      const pi=document.createElement('div');
+      pi.className='photo-item';
+
+      const img=document.createElement('img');
+      img.src=p;
+
+      const pd=document.createElement('button');
+      pd.className='photo-del';
+      pd.textContent='✕';
+
       pd.addEventListener('click',e=>{
         e.stopPropagation();
         const b=currentMemo.blocks.find(x=>x.id===block.id);
-        b.photos.splice(i,1);if(b.transforms)b.transforms.splice(i,1);
+        b.photos.splice(i,1);
         renderMemoBody();
       });
-      let pt=null;
-      let p1={dist:0,angle:0,scale:1,rotate:0};
-      let dragging=false,lx=0,ly=0,sx=0,sy=0;
-      pi.addEventListener('touchstart',e=>{
-        if(!pi.classList.contains('editing')){
-          pt=setTimeout(()=>pi.classList.add('editing'),600);
-          return;
-        }
-        clearTimeout(pt);
-        e.stopPropagation();
-        if(e.touches.length===2){
-          p1.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-          p1.angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-          p1.scale=t.s;p1.rotate=t.r;
-        }else if(e.touches.length===1){
-          dragging=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;sx=t.x;sy=t.y;
-        }
-      },{passive:true});
-      pi.addEventListener('touchmove',e=>{
-        if(!pi.classList.contains('editing')){clearTimeout(pt);return;}
-        e.preventDefault();
-        if(e.touches.length===2){
-          const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-          const angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-          t.s=Math.min(3,Math.max(0.3,p1.scale*(dist/p1.dist)));
-          t.r=p1.rotate+(angle-p1.angle);
-        }else if(dragging&&e.touches.length===1){
-          t.x=sx+(e.touches[0].clientX-lx);
-          t.y=sy+(e.touches[0].clientY-ly);
-        }
-        img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
-      },{passive:false});
-      pi.addEventListener('touchend',e=>{clearTimeout(pt);if(e.touches.length===0)dragging=false;});
-      pi.appendChild(img);pi.appendChild(doneBtn);pi.appendChild(pd);
+
+      pi.appendChild(img);
+      pi.appendChild(pd);
       pb.appendChild(pi);
     });
+
     wrap.appendChild(pb);
-    const del=document.createElement('button');del.className='block-del';del.textContent='✕';
-    del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+
+    const del=document.createElement('button');
+    del.className='block-del';
+    del.textContent='✕';
+
+    del.addEventListener('click',()=>{
+      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
+      renderMemoBody();
+    });
+
     wrap.appendChild(del);
-}else if(block.type==='split'){
-    if(!block.transform)block.transform={r:0,s:1};
-    const t=block.transform;
-    const sb=document.createElement('div');sb.className='split-block';
-    const sp=document.createElement('div');sp.className='split-photo';
-    sp.style.cssText='flex:1;border-radius:8px;overflow:hidden;position:relative;';
-    const img=document.createElement('img');img.src=block.photo;
-    img.style.transform=`rotate(${t.r}deg) scale(${t.s})`;
-    img.style.cssText+=';width:100%;display:block;border-radius:8px;transform-origin:center;';
-    // 길게 누르면 편집모드
-    let pt=null,p1={dist:0,angle:0,scale:1,rotate:0};
-    sp.addEventListener('touchstart',e=>{
-      pt=setTimeout(()=>sp.classList.add('editing'),600);
-      if(e.touches.length===2){
-        p1.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-        p1.angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-        p1.scale=t.s;p1.rotate=t.r;
-      }
-    },{passive:true});
-    sp.addEventListener('touchmove',e=>{
-      clearTimeout(pt);
-      if(e.touches.length===2){
-        const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-        const angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-        t.s=Math.min(3,Math.max(0.3,p1.scale*(dist/p1.dist)));
-        t.r=p1.rotate+(angle-p1.angle);
-        img.style.transform=`rotate(${t.r}deg) scale(${t.s})`;
-        block.transform={r:t.r,s:t.s};
-      }
-      e.preventDefault();
-    },{passive:false});
-    sp.addEventListener('touchend',()=>clearTimeout(pt));
+
+  }else if(block.type==='split'){
+    const sb=document.createElement('div');
+    sb.className='split-block';
+
+    const img=document.createElement('img');
+    img.src=block.photo;
+
+    const sp=document.createElement('div');
+    sp.className='split-photo';
     sp.appendChild(img);
-    const st=document.createElement('textarea');st.className='split-text';
-    st.value=block.text||'';st.placeholder='텍스트 입력...';
-    st.addEventListener('input',()=>{block.text=st.value;});
-    const del=document.createElement('button');del.className='block-del';del.textContent='✕';
-    del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
-    sb.appendChild(sp);sb.appendChild(st);
-    wrap.appendChild(sb);wrap.appendChild(del);
-  }else if(block.type==='video'){
-    const vb=document.createElement('div');vb.className='video-block';
+
+    const st=document.createElement('textarea');
+    st.className='split-text';
+    st.value=block.text||'';
+
+    st.addEventListener('input',()=>{
+      block.text=st.value;
+    });
+
+    const del=document.createElement('button');
+    del.className='block-del';
+    del.textContent='✕';
+
+    del.addEventListener('click',()=>{
+      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
+      renderMemoBody();
+    });
+
+    sb.appendChild(sp);
+    sb.appendChild(st);
+
+    wrap.appendChild(sb);
+    wrap.appendChild(del);
+    }else if(block.type==='video'){
+    const vb=document.createElement('div');
+    vb.className='video-block';
+
     if(block.url){
       const eu=getYoutubeEmbedUrl(block.url);
-      if(eu){const f=document.createElement('iframe');f.className='video-frame';f.src=eu;f.allowFullscreen=true;f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';vb.appendChild(f);}
+      if(eu){
+        const f=document.createElement('iframe');
+        f.className='video-frame';
+        f.src=eu;
+        f.allowFullscreen=true;
+        vb.appendChild(f);
+      }
     }else{
-      const inp=document.createElement('input');inp.className='video-url-input';inp.placeholder='YouTube 링크 붙여넣기';
-      const btn=document.createElement('button');btn.className='video-add-btn';btn.textContent='동영상 추가';
+      const inp=document.createElement('input');
+      inp.className='video-url-input';
+      inp.placeholder='YouTube 링크';
+
+      const btn=document.createElement('button');
+      btn.className='video-add-btn';
+      btn.textContent='추가';
+
       btn.addEventListener('click',()=>{
         collectMemoBlocks();
         currentMemo.blocks.find(x=>x.id===block.id).url=inp.value.trim();
         renderMemoBody();
       });
-      vb.appendChild(inp);vb.appendChild(btn);
+
+      vb.appendChild(inp);
+      vb.appendChild(btn);
     }
+
     wrap.appendChild(vb);
-    const del=document.createElement('button');del.className='block-del';del.textContent='✕';
-    del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+
+    const del=document.createElement('button');
+    del.className='block-del';
+    del.textContent='✕';
+
+    del.addEventListener('click',()=>{
+      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
+      renderMemoBody();
+    });
+
     wrap.appendChild(del);
   }
+
   return wrap;
 }
 
 function createCheckItem(item){
-  const ci=document.createElement('div');ci.className='check-item';
-  const cb=document.createElement('input');cb.type='checkbox';cb.checked=item.done;
-  const txt=document.createElement('input');txt.className='check-item-text'+(item.done?' done':'');
-  txt.value=item.text;txt.placeholder='항목 입력...';
-  cb.addEventListener('change',()=>txt.classList.toggle('done',cb.checked));
-  ci.appendChild(cb);ci.appendChild(txt);return ci;
+  const ci=document.createElement('div');
+  ci.className='check-item';
+
+  const cb=document.createElement('input');
+  cb.type='checkbox';
+  cb.checked=item.done;
+
+  const txt=document.createElement('input');
+  txt.className='check-item-text';
+  txt.value=item.text;
+
+  cb.addEventListener('change',()=>{
+    txt.classList.toggle('done',cb.checked);
+  });
+
+  ci.appendChild(cb);
+  ci.appendChild(txt);
+
+  return ci;
 }
-  function addTextBlock(){
+
+function addTextBlock(){
   if(!currentMemo)return;
   currentMemo.blocks.push({id:uid(),type:'text',content:''});
   renderMemoBody();
 }
+
 function addChecklistBlock(){
   if(!currentMemo)return;
   currentMemo.blocks.push({id:uid(),type:'checklist',items:[{text:'',done:false}]});
   renderMemoBody();
 }
-  function addPhotoTextBlock(){
+
+function addPhotoTextBlock(){
   if(!currentMemo)return;
   document.getElementById('photoInput').dataset.bid='split';
   document.getElementById('photoInput').click();
 }
+
 function addPhotoBlock(){
   if(!currentMemo)return;
   document.getElementById('photoInput').dataset.bid='new';
   document.getElementById('photoInput').click();
 }
+
 function addVideoBlock(){
   if(!currentMemo)return;
   currentMemo.blocks.push({id:uid(),type:'video',url:''});
@@ -465,82 +596,9 @@ function addVideoBlock(){
 }
 
 function getYoutubeEmbedUrl(url){
-  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
+  const m=url.match(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/);
   return m?`https://www.youtube.com/embed/${m[1]}`:null;
 }
-document.getElementById('photoInput').addEventListener('change',function(e){
-  const bid=this.dataset.bid;
-  const files=Array.from(e.target.files);
-  if(!files.length)return;
-  if(bid==='split'){
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      currentMemo.blocks.push({id:uid(),type:'split',photo:ev.target.result,text:''});
-      renderMemoBody();
-    };
-    reader.readAsDataURL(files[0]);
-    this.value='';return;
-  }
-  let loaded=0;
-  files.forEach(file=>{
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      const block={id:uid(),type:'photo',photos:[ev.target.result],transforms:[{r:0,s:1,x:0,y:0}]};
-      currentMemo.blocks.push(block);
-      loaded++;
-      if(loaded===files.length)renderMemoBody();
-    };
-    reader.readAsDataURL(file);
-  });
-  this.value='';
-});
-function showModal(title,placeholder,callback){
-  document.getElementById('modalTitle').textContent=title;
-  document.getElementById('modalInput').value='';
-  document.getElementById('modalInput').placeholder=placeholder;
-  modalCallback=callback;
-  document.getElementById('modalOverlay').classList.add('show');
-  setTimeout(()=>document.getElementById('modalInput').focus(),100);
-}
-function closeModal(){document.getElementById('modalOverlay').classList.remove('show');}
-document.getElementById('modalConfirmBtn').addEventListener('click',()=>{
-  const val=document.getElementById('modalInput').value.trim();
-  if(val&&modalCallback)modalCallback(val);closeModal();
-});
-document.getElementById('modalInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('modalConfirmBtn').click();});
-document.getElementById('modalOverlay').addEventListener('click',function(e){if(e.target===this)closeModal();});
-
-function showAddGroupModal(){
-  showModal('대그룹 추가','대그룹 이름',name=>{data.groups.push({id:uid(),name,open:false,subs:[]});saveData();render();});
-}
-function showAddSubModal(gid){
-  showModal('소그룹 추가','소그룹 이름',name=>{
-    const g=data.groups.find(x=>x.id===gid);
-    if(g){g.subs.push({id:uid(),name,blocks:[]});g.open=true;saveData();render();}
-  });
-}
-
-function showCtx(e,type,id,parentId){
-  e.preventDefault();ctxType=type;ctxTarget={id,parentId};
-  const menu=document.getElementById('ctxMenu');
-  document.getElementById('ctxAddSub').style.display=type==='group'?'block':'none';
-  menu.style.left=Math.min(e.clientX,window.innerWidth-170)+'px';
-  menu.style.top=Math.min(e.clientY,window.innerHeight-130)+'px';
-  menu.classList.add('show');
-}
-document.addEventListener('click',()=>document.getElementById('ctxMenu').classList.remove('show'));
-document.getElementById('ctxRename').addEventListener('click',()=>{
-  showModal(ctxType==='group'?'대그룹 이름 변경':'소그룹 이름 변경','새 이름',name=>{
-    if(ctxType==='group'){const g=data.groups.find(x=>x.id===ctxTarget.id);if(g){g.name=name;saveData();render();}}
-    else{const g=data.groups.find(x=>x.id===ctxTarget.parentId);const s=g&&g.subs.find(x=>x.id===ctxTarget.id);if(s){s.name=name;saveData();render();}}
-  });
-});
-document.getElementById('ctxAddSub').addEventListener('click',()=>showAddSubModal(ctxTarget.id));
-document.getElementById('ctxDelete').addEventListener('click',()=>{
-  if(ctxType==='group')data.groups=data.groups.filter(x=>x.id!==ctxTarget.id);
-  else{const g=data.groups.find(x=>x.id===ctxTarget.parentId);if(g)g.subs=g.subs.filter(x=>x.id!==ctxTarget.id);}
-  saveData();render();
-});
 
 render();
 </script>
