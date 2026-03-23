@@ -51,7 +51,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .check-item-text{flex:1;border:none;background:none;font-size:15px;color:var(--text);outline:none;font-family:inherit;}
 .check-item-text.done{text-decoration:line-through;color:var(--muted);}
 .add-check-btn{display:flex;align-items:center;gap:6px;color:var(--primary);font-size:14px;border:none;background:none;padding:8px 0;cursor:pointer;width:100%;}
-.block-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.4);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;}
+.block-del{display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,.4);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;align-items:center;justify-content:center;cursor:pointer;z-index:10;}
 .photo-block{border-radius:10px;padding:4px;}
 .photo-item{position:relative;margin-bottom:6px;border-radius:8px;}
 .photo-item img{width:100%;display:block;border-radius:8px;transform-origin:center center;}
@@ -220,7 +220,11 @@ function renderMemoBody(){
 }
   function createBlockEl(block){
   const wrap=document.createElement('div');wrap.className='block';wrap.dataset.bid=block.id;
-
+wrap.addEventListener('click',()=>{
+  document.querySelectorAll('.block-del').forEach(b=>b.style.display='none');
+  const d=wrap.querySelector('.block-del');
+  if(d)d.style.display='flex';
+});
   if(block.type==='text'){
     const view=document.createElement('div');
     view.className='text-view'+(block.content?'':' empty');
