@@ -290,7 +290,6 @@ wrap.addEventListener('click',()=>{
       renderMemoBody();
     });
     wrap.appendChild(view);wrap.appendChild(edit);wrap.appendChild(doneBtn);wrap.appendChild(delBtn);
-  } 
   }else if(block.type==='checklist'){
     const cl=document.createElement('div');cl.className='checklist-block';
     (block.items||[]).forEach(item=>cl.appendChild(createCheckItem(item)));
