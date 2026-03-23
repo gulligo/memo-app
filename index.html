@@ -214,15 +214,37 @@ function collectMemoBlocks(){
   document.getElementById('memoBody').querySelectorAll('.block').forEach(b=>{
     const block=currentMemo.blocks.find(x=>x.id===b.dataset.bid);
     if(!block)return;
+
     if(block.type==='text'){
       const edit=b.querySelector('.text-edit');
       if(edit)block.content=edit.value;
+
     }else if(block.type==='checklist'){
       block.items=[];
       b.querySelectorAll('.check-item').forEach(ci=>{
-        block.items.push({text:ci.querySelector('.check-item-text').value,done:ci.querySelector('input').checked});
+        block.items.push({
+          text:ci.querySelector('.check-item-text').value,
+          done:ci.querySelector('input').checked
+        });
       });
+
+    }else if(block.type==='split'){
+      const ta=b.querySelector('.split-text');
+      const tw=ta ? ta.parentElement : null;
+
+      if(ta){
+        block.text=ta.value;
+        block.textHeight=parseInt(ta.style.height)||120;
+        block.fontSize=parseInt(ta.style.fontSize)||14;
+      }
+
+      if(tw){
+        block.textTop=parseInt(tw.style.top)||8;
+        block.textLeft=tw.style.left || '52%';
+        block.textWidth=tw.style.width || '40%';
+      }
     }
+
     nb.push(block);
   });
   currentMemo.blocks=nb;
@@ -510,7 +532,7 @@ st.addEventListener('touchend',()=>{
 
     const del=document.createElement('button');del.className='block-del';del.textContent='✕';
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
-    sb.appendChild(sp);sb.appendChild(st);
+    sb.appendChild(sp);sb.appendChild(textWrap);
     wrap.appendChild(sb);wrap.appendChild(del);
 
   }else if(block.type==='video'){
