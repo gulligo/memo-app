@@ -1,509 +1,317 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>용용이 메모장</title>
 <style>
-:root{
-  --bg:#f5f5f7; --card:#fff; --line:#e5e5ea; --blue:#007aff;
-  --text:#1c1c1e; --muted:#8e8e93; --red:#ff3b30; --green:#34c759;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+:root{--bg:#f5f5f7;--card:#fff;--line:#e5e5ea;--blue:#007aff;--text:#1c1c1e;--muted:#8e8e93}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:sans-serif;background:var(--bg);color:var(--text)}
 button,input,textarea{font:inherit}
-.header{
-  position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);
-  padding:12px 16px;display:flex;justify-content:space-between;align-items:center
-}
+.header{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
 .header h1{font-size:18px}
-.icon-btn,.plain-btn{border:none;background:none;color:var(--blue);cursor:pointer}
-.icon-btn{font-size:24px}
+.icon{border:none;background:none;color:var(--blue);font-size:24px;cursor:pointer}
 .main{padding:12px}
-.group{
-  background:var(--card);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);
-  margin-bottom:8px;overflow:hidden
-}
-.group-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
-.group-head strong{font-size:16px}
-.group-items{display:none;border-top:1px solid var(--line)}
-.group-items.open{display:block}
-.sub{
-  padding:12px 16px 12px 28px;border-bottom:1px solid var(--line);
-  display:flex;justify-content:space-between;align-items:center;cursor:pointer
-}
-.sub:last-child{border-bottom:none}
-.sub small{display:block;color:var(--muted);margin-top:2px}
-.add-sub{padding:12px;color:var(--blue);text-align:center;cursor:pointer}
-.memo{
-  display:none;position:fixed;inset:0;background:var(--bg);z-index:100;flex-direction:column
-}
+.group{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:8px}
+.ghead{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.gitems{display:none;border-top:1px solid var(--line)}
+.gitems.open{display:block}
+.sub{padding:12px 16px 12px 28px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;cursor:pointer}
+.addsub{padding:12px;text-align:center;color:var(--blue);cursor:pointer}
+
+.memo{display:none;position:fixed;inset:0;background:var(--bg);z-index:10;flex-direction:column}
 .memo.show{display:flex}
-.memo-head{
-  background:#fff;border-bottom:1px solid var(--line);padding:8px 16px;
-  display:flex;justify-content:space-between;align-items:center
-}
-.back{border:none;background:none;color:var(--blue);font-size:34px;line-height:1;cursor:pointer}
-.save{
-  border:none;background:var(--blue);color:#fff;border-radius:8px;padding:7px 16px;font-weight:700;cursor:pointer
-}
-.canvas{
-  flex:1;overflow:auto;position:relative;padding:12px 12px 90px 12px
-}
-.toolbar{
-  background:#fff;border-top:1px solid var(--line);padding:8px 12px;
-  display:flex;gap:8px;flex-wrap:wrap
-}
-.tool{
-  border:none;background:var(--bg);border-radius:8px;padding:8px 12px;cursor:pointer
-}
-.block{position:relative;margin-bottom:10px}
-.del{
-  display:none;position:absolute;right:6px;top:6px;width:24px;height:24px;border:none;border-radius:50%;
-  background:rgba(0,0,0,.45);color:#fff;cursor:pointer;z-index:5
-}
-.block.active .del{display:block}
+.mhead{background:#fff;border-bottom:1px solid var(--line);padding:8px 16px;display:flex;justify-content:space-between;align-items:center}
+.back{border:none;background:none;color:var(--blue);font-size:34px;cursor:pointer}
+.save{border:none;background:var(--blue);color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer}
+.canvas{flex:1;overflow:auto;position:relative;padding:12px 12px 80px}
+.toolbar{background:#fff;border-top:1px solid var(--line);padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap}
+.tool{border:none;background:#eef3ff;padding:8px 12px;border-radius:8px;cursor:pointer}
 
-/* movable text */
-.text-block{
-  position:absolute;min-width:120px;z-index:20
-}
-.text-box{
-  background:#fff;border:2px solid var(--blue);border-radius:10px;padding:8px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08)
-}
-.move{
-  background:var(--bg);border-radius:8px;padding:6px 10px;text-align:center;font-size:12px;
-  margin-bottom:6px;cursor:grab;user-select:none
-}
-.text-btns{display:flex;gap:6px;margin-bottom:6px}
-.text-btn{
-  border:none;background:var(--bg);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer
-}
-.text-area{
-  width:100%;border:none;outline:none;resize:none;background:transparent;color:var(--text);min-height:80px
-}
+.textBlock{position:absolute;min-width:120px;z-index:20}
+.textBox{background:#fff;border:2px solid var(--blue);border-radius:10px;padding:8px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.move{background:#eee;border-radius:8px;padding:6px 10px;text-align:center;font-size:12px;margin-bottom:6px;cursor:grab}
+.row{display:flex;gap:6px;margin-bottom:6px}
+.smallbtn{border:none;background:#eee;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
+.ta{width:100%;border:none;outline:none;resize:none;background:transparent;min-height:80px}
 
-/* checklist */
-.check-wrap{
-  background:#fff;border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)
-}
-.check-item{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-.check-item:last-child{border-bottom:none}
-.check-item input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue)}
-.check-text{flex:1;border:none;outline:none;background:none}
-.check-text.done{text-decoration:line-through;color:var(--muted)}
-.add-check{border:none;background:none;color:var(--blue);padding:8px 0;cursor:pointer;width:100%;text-align:left}
+.photoWrap{position:relative;margin-bottom:10px}
+.photoWrap img{width:100%;display:block;border-radius:10px}
 
-/* photo */
-.photo-item{
-  position:relative;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06)
-}
-.photo-item img{display:block;width:100%;transform-origin:center center}
-.photo-done{
-  display:none;position:absolute;left:8px;bottom:8px;border:none;border-radius:8px;
-  background:var(--green);color:#fff;padding:6px 12px;font-weight:700
-}
-.photo-x{
-  display:none;position:absolute;right:8px;top:8px;width:28px;height:28px;border:none;border-radius:50%;
-  background:rgba(0,0,0,.55);color:#fff
-}
-.photo-item.editing .photo-done,.photo-item.editing .photo-x{display:block}
-
-/* modal */
-.modal-bg{
-  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end
-}
-.modal-bg.show{display:flex}
-.modal{
-  width:100%;background:#fff;border-radius:16px 16px 0 0;padding:20px 16px
-}
+.modalBg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:20;align-items:flex-end}
+.modalBg.show{display:flex}
+.modal{background:#fff;width:100%;padding:20px 16px;border-radius:16px 16px 0 0}
 .modal h2{font-size:16px;margin-bottom:12px}
-.modal input{
-  width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;margin-bottom:12px
-}
-.modal-row{display:flex;gap:8px}
-.modal-row button{flex:1;border:none;border-radius:10px;padding:12px;cursor:pointer}
+.modal input{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.mrow{display:flex;gap:8px}
+.mrow button{flex:1;border:none;border-radius:10px;padding:12px;cursor:pointer}
 .ok{background:var(--blue);color:#fff}
-.cancel{background:var(--bg)}
-.ctx{
-  display:none;position:fixed;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);
-  overflow:hidden;z-index:300;min-width:160px
-}
-.ctx.show{display:block}
-.ctx div{padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer}
-.ctx div:last-child{border-bottom:none}
-.ctx .danger{color:var(--red)}
+.cancel{background:#eee}
 </style>
 </head>
 <body>
 <div class="header">
   <h1>용용이 메모장</h1>
-  <button class="icon-btn" onclick="openAddGroup()">＋</button>
+  <button class="icon" onclick="openGroupModal()">＋</button>
 </div>
 
-<div class="main"><div id="groups"></div></div>
+<div class="main" id="groups"></div>
 
-<div class="memo" id="memoView">
-  <div class="memo-head">
+<div class="memo" id="memo">
+  <div class="mhead">
     <button class="back" onclick="closeMemo()">‹</button>
-    <button class="save" id="saveBtn" onclick="saveMemo()">저장</button>
+    <button class="save" onclick="saveMemo()">저장</button>
   </div>
   <div class="canvas" id="canvas"></div>
   <div class="toolbar">
-    <button class="tool" onclick="addText()">📝 텍스트</button>
-    <button class="tool" onclick="addChecklist()">☑️ 체크</button>
-    <button class="tool" onclick="addPhoto()">🖼 사진</button>
+    <button class="tool" onclick="addText()">텍스트</button>
+    <button class="tool" onclick="addPhoto()">사진</button>
   </div>
 </div>
 
-<div class="modal-bg" id="modalBg">
+<div class="modalBg" id="modalBg">
   <div class="modal">
-    <h2 id="modalTitle"></h2>
-    <input id="modalInput" />
-    <div class="modal-row">
+    <h2 id="modalTitle">이름 입력</h2>
+    <input id="modalInput">
+    <div class="mrow">
       <button class="cancel" onclick="closeModal()">취소</button>
       <button class="ok" id="modalOk">확인</button>
     </div>
   </div>
 </div>
 
-<div class="ctx" id="ctx">
-  <div id="ctxRename">이름 변경</div>
-  <div id="ctxAddSub">소그룹 추가</div>
-  <div id="ctxDelete" class="danger">삭제</div>
-</div>
-
-<input type="file" id="photoInput" accept="image/*" multiple style="display:none" />
+<input type="file" id="photoInput" accept="image/*" style="display:none">
 
 <script>
-const KEY='yy_memo_v1';
-const $=s=>document.querySelector(s);
-const groupsEl=$('#groups'), canvas=$('#canvas'), memoView=$('#memoView');
-let data=load(), currentGroupId=null, currentSubId=null, currentMemo=null;
-let modalFn=null, ctxType=null, ctxInfo=null;
+const KEY='yy_memo_restore_v1';
+const groupsEl=document.getElementById('groups');
+const memoEl=document.getElementById('memo');
+const canvas=document.getElementById('canvas');
+const modalBg=document.getElementById('modalBg');
+const modalTitle=document.getElementById('modalTitle');
+const modalInput=document.getElementById('modalInput');
+const modalOk=document.getElementById('modalOk');
+const photoInput=document.getElementById('photoInput');
 
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
-function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {groups:[]}; }catch{ return {groups:[]}; } }
-function persist(){ localStorage.setItem(KEY,JSON.stringify(data)); }
+let data=loadData();
+let currentGroupId=null,currentSubId=null,currentMemo=null;
+let modalFn=null;
+
+function loadData(){
+  try{return JSON.parse(localStorage.getItem(KEY))||{groups:[]};}
+  catch(e){return {groups:[]};}
+}
+function saveData(){
+  localStorage.setItem(KEY,JSON.stringify(data));
+}
+function uid(){
+  return Date.now().toString(36)+Math.random().toString(36).slice(2);
+}
 
 function renderGroups(){
   groupsEl.innerHTML='';
   data.groups.forEach(g=>{
-    const wrap=document.createElement('div'); wrap.className='group';
-    const head=document.createElement('div'); head.className='group-head';
-    head.innerHTML=`<strong>${g.name}</strong><span class="group-arrow ${g.open?'open':''}">▶</span>`;
-    head.onclick=()=>{ g.open=!g.open; persist(); renderGroups(); };
-    head.oncontextmenu=e=>openCtx(e,'group',{gid:g.id});
+    const box=document.createElement('div');
+    box.className='group';
 
-    const items=document.createElement('div'); items.className='group-items'+(g.open?' open':'');
+    const head=document.createElement('div');
+    head.className='ghead';
+    head.innerHTML=`<strong>${g.name}</strong><span>${g.open?'▼':'▶'}</span>`;
+    head.onclick=()=>{g.open=!g.open;saveData();renderGroups();};
+
+    const items=document.createElement('div');
+    items.className='gitems'+(g.open?' open':'');
     (g.subs||[]).forEach(s=>{
-      const row=document.createElement('div'); row.className='sub';
-      row.innerHTML=`<div><div>${s.name}</div><small>${metaText(s)}</small></div><span>›</span>`;
+      const row=document.createElement('div');
+      row.className='sub';
+      row.innerHTML=`<span>${s.name}</span><span>›</span>`;
       row.onclick=()=>openMemo(g.id,s.id);
-      row.oncontextmenu=e=>openCtx(e,'sub',{gid:g.id,sid:s.id});
       items.appendChild(row);
     });
 
-    const add=document.createElement('div'); add.className='add-sub'; add.textContent='+ 소그룹 추가';
-    add.onclick=()=>openAddSub(g.id);
+    const add=document.createElement('div');
+    add.className='addsub';
+    add.textContent='+ 소그룹 추가';
+    add.onclick=()=>openSubModal(g.id);
     items.appendChild(add);
 
-    wrap.append(head,items); groupsEl.appendChild(wrap);
+    box.appendChild(head);
+    box.appendChild(items);
+    groupsEl.appendChild(box);
   });
 }
-function metaText(s){
-  if(!s.blocks||!s.blocks.length) return '비어있음';
-  const a=[];
-  if(s.blocks.some(b=>b.type==='text'&&b.content)) a.push('텍스트');
-  if(s.blocks.some(b=>b.type==='check')) a.push('체크');
-  if(s.blocks.some(b=>b.type==='photo')) a.push('사진');
-  return a.join(' · ')||'비어있음';
+
+function openModal(title,fn){
+  modalTitle.textContent=title;
+  modalInput.value='';
+  modalFn=fn;
+  modalBg.classList.add('show');
+  setTimeout(()=>modalInput.focus(),50);
+}
+function closeModal(){
+  modalBg.classList.remove('show');
+}
+modalOk.onclick=()=>{
+  const v=modalInput.value.trim();
+  if(v&&modalFn)modalFn(v);
+  closeModal();
+};
+
+function openGroupModal(){
+  openModal('대그룹 추가',name=>{
+    data.groups.push({id:uid(),name,open:false,subs:[]});
+    saveData();
+    renderGroups();
+  });
+}
+function openSubModal(gid){
+  openModal('소그룹 추가',name=>{
+    const g=data.groups.find(x=>x.id===gid);
+    if(!g)return;
+    g.subs.push({id:uid(),name,blocks:[]});
+    g.open=true;
+    saveData();
+    renderGroups();
+  });
 }
 
 function openMemo(gid,sid){
-  currentGroupId=gid; currentSubId=sid;
+  currentGroupId=gid;
+  currentSubId=sid;
   const g=data.groups.find(x=>x.id===gid);
   const s=g.subs.find(x=>x.id===sid);
   currentMemo=JSON.parse(JSON.stringify(s));
   currentMemo.blocks ||= [];
   renderMemo();
-  memoView.classList.add('show');
+  memoEl.classList.add('show');
 }
-function closeMemo(){ memoView.classList.remove('show'); currentMemo=null; }
-
+function closeMemo(){
+  memoEl.classList.remove('show');
+  currentMemo=null;
+}
 function saveMemo(){
-  if(!currentMemo) return;
-  collect();
   const g=data.groups.find(x=>x.id===currentGroupId);
   const i=g.subs.findIndex(x=>x.id===currentSubId);
   g.subs[i]=JSON.parse(JSON.stringify(currentMemo));
-  persist(); renderGroups();
-  const btn=$('#saveBtn');
-  btn.textContent='✓'; btn.style.background='var(--green)';
-  setTimeout(()=>{btn.textContent='저장'; btn.style.background='var(--blue)';},1000);
-}
-
-function collect(){
-  const next=[];
-  canvas.querySelectorAll('.block').forEach(el=>{
-    const b=currentMemo.blocks.find(x=>x.id===el.dataset.id);
-    if(!b) return;
-
-    if(b.type==='text'){
-      const ta=el.querySelector('.text-area');
-      b.content=ta.value;
-      b.x=parseInt(el.style.left)||20;
-      b.y=parseInt(el.style.top)||80;
-      b.w=el.style.width||'45%';
-      b.h=parseInt(ta.style.height)||140;
-      b.size=parseInt(ta.style.fontSize)||16;
-    }else if(b.type==='check'){
-      b.items=[...el.querySelectorAll('.check-item')].map(row=>({
-        text:row.querySelector('.check-text').value,
-        done:row.querySelector('input').checked
-      }));
-    }
-    next.push(b);
-  });
-  currentMemo.blocks=next;
+  saveData();
+  renderGroups();
 }
 
 function renderMemo(){
   canvas.innerHTML='';
-  currentMemo.blocks.forEach(b=>canvas.appendChild(makeBlock(b)));
-}
+  currentMemo.blocks.forEach(b=>{
+    if(b.type==='text'){
+      const wrap=document.createElement('div');
+      wrap.className='textBlock';
+      wrap.style.left=(b.x||20)+'px';
+      wrap.style.top=(b.y||80)+'px';
+      wrap.style.width=(b.w||180)+'px';
 
-function makeBlock(b){
-  const wrap=document.createElement('div');
-  wrap.className='block';
-  wrap.dataset.id=b.id;
-  wrap.onclick=()=>{
-    document.querySelectorAll('.block').forEach(x=>x.classList.remove('active'));
-    wrap.classList.add('active');
-  };
+      const box=document.createElement('div');
+      box.className='textBox';
 
-  if(b.type==='text'){
-    wrap.classList.add('text-block');
-    wrap.style.left=(b.x??20)+'px';
-    wrap.style.top=(b.y??80)+'px';
-    wrap.style.width=b.w||'45%';
+      const move=document.createElement('div');
+      move.className='move';
+      move.textContent='이동';
 
-    const box=document.createElement('div'); box.className='text-box';
-    const move=document.createElement('div'); move.className='move'; move.textContent='이동';
-    const btns=document.createElement('div'); btns.className='text-btns';
-    const small=document.createElement('button'); small.className='text-btn'; small.textContent='작게';
-    const big=document.createElement('button'); big.className='text-btn'; big.textContent='크게';
-    const ta=document.createElement('textarea'); ta.className='text-area';
-    ta.value=b.content||''; ta.placeholder='내용 입력...';
-    ta.style.height=(b.h??140)+'px'; ta.style.fontSize=(b.size??16)+'px';
-    ta.oninput=()=>b.content=ta.value;
+      const row=document.createElement('div');
+      row.className='row';
 
-    big.onclick=e=>{
-      e.stopPropagation();
-      let h=parseInt(ta.style.height)||140, s=parseInt(ta.style.fontSize)||16, w=parseInt(wrap.style.width)||45;
-      h+=120; s+=6; w=Math.min(80,w+10);
-      ta.style.height=h+'px'; ta.style.fontSize=s+'px'; wrap.style.width=w+'%';
-      b.h=h; b.size=s; b.w=w+'%';
-    };
-    small.onclick=e=>{
-      e.stopPropagation();
-      let h=parseInt(ta.style.height)||140, s=parseInt(ta.style.fontSize)||16, w=parseInt(wrap.style.width)||45;
-      h=Math.max(80,h-120); s=Math.max(10,s-6); w=Math.max(20,w-10);
-      ta.style.height=h+'px'; ta.style.fontSize=s+'px'; wrap.style.width=w+'%';
-      b.h=h; b.size=s; b.w=w+'%';
-    };
+      const smaller=document.createElement('button');
+      smaller.className='smallbtn';
+      smaller.textContent='작게';
 
-    let drag=false,sx=0,sy=0,startX=0,startY=0;
-    move.ontouchstart=e=>{
-      if(e.touches.length!==1) return;
-      drag=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY;
-      startX=parseInt(wrap.style.left)||20; startY=parseInt(wrap.style.top)||80;
-    };
-    move.ontouchmove=e=>{
-      if(!drag) return;
-      const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
-      wrap.style.left=(startX+dx)+'px'; wrap.style.top=(startY+dy)+'px';
-      b.x=startX+dx; b.y=startY+dy;
-    };
-    move.ontouchend=()=>drag=false;
+      const bigger=document.createElement('button');
+      bigger.className='smallbtn';
+      bigger.textContent='크게';
 
-    const del=document.createElement('button'); del.className='del'; del.textContent='✕';
-    del.onclick=e=>{ e.stopPropagation(); currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==b.id); renderMemo(); };
+      const ta=document.createElement('textarea');
+      ta.className='ta';
+      ta.value=b.text||'';
+      ta.style.height=(b.h||120)+'px';
+      ta.style.fontSize=(b.size||16)+'px';
+      ta.oninput=()=>b.text=ta.value;
 
-    btns.append(small,big); box.append(move,btns,ta); wrap.append(box,del);
-    return wrap;
-  }
+      bigger.onclick=()=>{
+        b.h=(b.h||120)+80;
+        b.size=(b.size||16)+4;
+        b.w=(b.w||180)+40;
+        renderMemo();
+      };
+      smaller.onclick=()=>{
+        b.h=Math.max(80,(b.h||120)-80);
+        b.size=Math.max(10,(b.size||16)-4);
+        b.w=Math.max(120,(b.w||180)-40);
+        renderMemo();
+      };
 
-  if(b.type==='check'){
-    const box=document.createElement('div'); box.className='check-wrap';
-    (b.items||[]).forEach(it=>box.appendChild(makeCheckRow(it)));
-    const add=document.createElement('button'); add.className='add-check'; add.textContent='＋ 항목 추가';
-    add.onclick=e=>{
-      e.stopPropagation();
-      collect();
-      currentMemo.blocks.find(x=>x.id===b.id).items.push({text:'',done:false});
-      renderMemo();
-    };
-    const del=document.createElement('button'); del.className='del'; del.textContent='✕';
-    del.onclick=e=>{ e.stopPropagation(); currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==b.id); renderMemo(); };
-    box.appendChild(add); wrap.append(box,del);
-    return wrap;
-  }
+      let dragging=false,startX=0,startY=0,startLeft=0,startTop=0;
+      move.ontouchstart=e=>{
+        dragging=true;
+        startX=e.touches[0].clientX;
+        startY=e.touches[0].clientY;
+        startLeft=b.x||20;
+        startTop=b.y||80;
+      };
+      move.ontouchmove=e=>{
+        if(!dragging)return;
+        const dx=e.touches[0].clientX-startX;
+        const dy=e.touches[0].clientY-startY;
+        b.x=startLeft+dx;
+        b.y=startTop+dy;
+        wrap.style.left=b.x+'px';
+        wrap.style.top=b.y+'px';
+      };
+      move.ontouchend=()=>dragging=false;
 
-  if(b.type==='photo'){
-    const item=document.createElement('div'); item.className='photo-item';
-    const img=document.createElement('img'); img.src=b.src;
-    const done=document.createElement('button'); done.className='photo-done'; done.textContent='완료';
-    const xbtn=document.createElement('button'); xbtn.className='photo-x'; xbtn.textContent='✕';
+      row.appendChild(smaller);
+      row.appendChild(bigger);
+      box.appendChild(move);
+      box.appendChild(row);
+      box.appendChild(ta);
+      wrap.appendChild(box);
+      canvas.appendChild(wrap);
+    }
 
-    xbtn.onclick=e=>{ e.stopPropagation(); currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==b.id); renderMemo(); };
-    done.onclick=e=>{ e.stopPropagation(); item.classList.remove('editing'); };
-
-    let t=b.t||{r:0,s:1,x:0,y:0}, drag=false, lx=0,ly=0,sx=0,sy=0, p={dist:0,ang:0,scale:1,rot:0}, longPress=null;
-    function apply(){ img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`; b.t=t; }
-    apply();
-
-    item.ontouchstart=e=>{
-      if(!item.classList.contains('editing')){
-        longPress=setTimeout(()=>item.classList.add('editing'),600);
-        return;
-      }
-      clearTimeout(longPress);
-      if(e.touches.length===2){
-        p.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-        p.ang=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-        p.scale=t.s; p.rot=t.r;
-      }else if(e.touches.length===1){
-        drag=true; lx=e.touches[0].clientX; ly=e.touches[0].clientY; sx=t.x; sy=t.y;
-      }
-    };
-    item.ontouchmove=e=>{
-      if(!item.classList.contains('editing')){ clearTimeout(longPress); return; }
-      e.preventDefault();
-      if(e.touches.length===2){
-        const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-        const a=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-        t.s=Math.min(3,Math.max(0.3,p.scale*(d/p.dist)));
-        t.r=p.rot+(a-p.ang);
-      }else if(drag&&e.touches.length===1){
-        t.x=sx+(e.touches[0].clientX-lx);
-        t.y=sy+(e.touches[0].clientY-ly);
-      }
-      apply();
-    };
-    item.ontouchend=()=>{ clearTimeout(longPress); drag=false; };
-
-    item.append(img,done,xbtn); wrap.appendChild(item);
-    return wrap;
-  }
-
-  return wrap;
-}
-
-function makeCheckRow(it){
-  const row=document.createElement('div'); row.className='check-item';
-  const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=it.done;
-  const txt=document.createElement('input'); txt.className='check-text'+(it.done?' done':''); txt.value=it.text; txt.placeholder='항목 입력...';
-  cb.onchange=()=>txt.classList.toggle('done',cb.checked);
-  row.append(cb,txt); return row;
+    if(b.type==='photo'){
+      const wrap=document.createElement('div');
+      wrap.className='photoWrap';
+      const img=document.createElement('img');
+      img.src=b.src;
+      wrap.appendChild(img);
+      canvas.appendChild(wrap);
+    }
+  });
 }
 
 function addText(){
-  if(!currentMemo) return;
-  currentMemo.blocks.push({id:uid(),type:'text',content:'',x:20,y:80,w:'45%',h:140,size:16});
-  renderMemo();
-}
-function addChecklist(){
-  if(!currentMemo) return;
-  currentMemo.blocks.push({id:uid(),type:'check',items:[{text:'',done:false}]});
+  if(!currentMemo)return;
+  currentMemo.blocks.push({
+    id:uid(),
+    type:'text',
+    text:'',
+    x:20,
+    y:80,
+    w:180,
+    h:120,
+    size:16
+  });
   renderMemo();
 }
 function addPhoto(){
-  if(!currentMemo) return;
-  $('#photoInput').click();
+  photoInput.click();
 }
-
-$('#photoInput').addEventListener('change',e=>{
-  const files=[...e.target.files];
-  if(!files.length||!currentMemo) return;
-  files.forEach(file=>{
-    const r=new FileReader();
-    r.onload=x=>{
-      currentMemo.blocks.push({id:uid(),type:'photo',src:x.target.result,t:{r:0,s:1,x:0,y:0}});
-      renderMemo();
-    };
-    r.readAsDataURL(file);
-  });
+photoInput.onchange=e=>{
+  const file=e.target.files[0];
+  if(!file||!currentMemo)return;
+  const r=new FileReader();
+  r.onload=x=>{
+    currentMemo.blocks.push({id:uid(),type:'photo',src:x.target.result});
+    renderMemo();
+  };
+  r.readAsDataURL(file);
   e.target.value='';
-});
-
-function openModal(title,placeholder,fn){
-  $('#modalTitle').textContent=title;
-  $('#modalInput').value='';
-  $('#modalInput').placeholder=placeholder;
-  modalFn=fn;
-  $('#modalBg').classList.add('show');
-  setTimeout(()=>$('#modalInput').focus(),50);
-}
-function closeModal(){ $('#modalBg').classList.remove('show'); }
-$('#modalOk').onclick=()=>{
-  const v=$('#modalInput').value.trim();
-  if(v&&modalFn) modalFn(v);
-  closeModal();
-};
-$('#modalInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#modalOk').click(); });
-$('#modalBg').addEventListener('click',e=>{ if(e.target.id==='modalBg') closeModal(); });
-
-function openAddGroup(){
-  openModal('대그룹 추가','대그룹 이름',name=>{
-    data.groups.push({id:uid(),name,open:false,subs:[]});
-    persist(); renderGroups();
-  });
-}
-function openAddSub(gid){
-  openModal('소그룹 추가','소그룹 이름',name=>{
-    const g=data.groups.find(x=>x.id===gid);
-    if(!g) return;
-    g.subs.push({id:uid(),name,blocks:[]});
-    g.open=true;
-    persist(); renderGroups();
-  });
-}
-
-function openCtx(e,type,info){
-  e.preventDefault();
-  ctxType=type; ctxInfo=info;
-  const m=$('#ctx');
-  $('#ctxAddSub').style.display=type==='group'?'block':'none';
-  m.style.left=Math.min(e.clientX,window.innerWidth-170)+'px';
-  m.style.top=Math.min(e.clientY,window.innerHeight-130)+'px';
-  m.classList.add('show');
-}
-document.addEventListener('click',()=>$('#ctx').classList.remove('show'));
-
-$('#ctxRename').onclick=()=>{
-  openModal(ctxType==='group'?'대그룹 이름 변경':'소그룹 이름 변경','새 이름',name=>{
-    if(ctxType==='group'){
-      const g=data.groups.find(x=>x.id===ctxInfo.gid);
-      if(g) g.name=name;
-    }else{
-      const g=data.groups.find(x=>x.id===ctxInfo.gid);
-      const s=g&&g.subs.find(x=>x.id===ctxInfo.sid);
-      if(s) s.name=name;
-    }
-    persist(); renderGroups();
-  });
-};
-$('#ctxAddSub').onclick=()=>openAddSub(ctxInfo.gid);
-$('#ctxDelete').onclick=()=>{
-  if(ctxType==='group'){
-    data.groups=data.groups.filter(x=>x.id!==ctxInfo.gid);
-  }else{
-    const g=data.groups.find(x=>x.id===ctxInfo.gid);
-    if(g) g.subs=g.subs.filter(x=>x.id!==ctxInfo.sid);
-  }
-  persist(); renderGroups();
 };
 
 renderGroups();
