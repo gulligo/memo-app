@@ -51,7 +51,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .check-item-text{flex:1;border:none;background:none;font-size:15px;color:var(--text);outline:none;font-family:inherit;}
 .check-item-text.done{text-decoration:line-through;color:var(--muted);}
 .add-check-btn{display:flex;align-items:center;gap:6px;color:var(--primary);font-size:14px;border:none;background:none;padding:8px 0;cursor:pointer;width:100%;}
-.block-del{display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,.4);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;align-items:center;justify-content:center;cursor:pointer;z-index:10;}
+.block-del{display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,.4);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:11px;align-items:center;justify-content:center;cursor:pointer;z-index:10;} .block-handle{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.2);color:#fff;border:none;border-radius:6px;width:22px;height:22px;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:grab;z-index:10;touch-action:none;}
 .photo-block{border-radius:10px;padding:4px;}
 .photo-item{position:relative;margin-bottom:6px;border-radius:8px;}
 .photo-item img{width:100%;display:block;border-radius:8px;transform-origin:center center;}
@@ -220,6 +220,36 @@ function renderMemoBody(){
 }
   function createBlockEl(block){
   const wrap=document.createElement('div');wrap.className='block';wrap.dataset.bid=block.id;
+    const handle=document.createElement('button');handle.className='block-handle';handle.textContent='☰';
+let dragStartY=0;
+handle.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  dragStartY=e.touches[0].clientY;
+  wrap.style.opacity='0.6';
+},{passive:false});
+handle.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const body=document.getElementById('memoBody');
+  const blocks=Array.from(body.querySelectorAll('.block'));
+  const y=e.touches[0].clientY;
+  const target=blocks.find(b=>{
+    if(b===wrap)return false;
+    const r=b.getBoundingClientRect();
+    return y>=r.top&&y<=r.bottom;
+  });
+  if(target){
+    const idx=blocks.indexOf(wrap);
+    const tidx=blocks.indexOf(target);
+    if(tidx<idx)body.insertBefore(wrap,target);
+    else body.insertBefore(wrap,target.nextSibling);
+  }
+},{passive:false});
+handle.addEventListener('touchend',()=>{
+  wrap.style.opacity='1';
+  collectMemoBlocks();
+  renderMemoBody();
+});
+wrap.appendChild(handle);
 wrap.addEventListener('click',()=>{
   document.querySelectorAll('.block-del').forEach(b=>b.style.display='none');
   const d=wrap.querySelector('.block-del');
