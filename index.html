@@ -59,6 +59,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .photo-item.editing .photo-done-btn{display:block;}
 .photo-del{position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;align-items:center;justify-content:center;cursor:pointer;z-index:5;display:none;}
 .photo-item.editing .photo-del{display:flex;}
+  .split-block{display:flex;gap:8px;background:var(--card);border-radius:10px;padding:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:8px;}
+.split-photo{flex:1;border-radius:8px;overflow:hidden;}
+.split-photo img{width:100%;display:block;border-radius:8px;}
+.split-text{flex:1;border:none;background:var(--bg);border-radius:8px;padding:8px;font-size:14px;color:var(--text);outline:none;resize:none;font-family:inherit;min-height:100px;}
 .video-block{background:var(--card);border-radius:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:8px;}
 .video-frame{width:100%;aspect-ratio:16/9;border:none;border-radius:8px;}
 .video-url-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;outline:none;font-family:inherit;margin-bottom:8px;}
@@ -92,6 +96,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
   </div>
   <div class="memo-body" id="memoBody"></div>
   <div class="toolbar">
+    <button class="tool-btn" onclick="addPhotoTextBlock()">🖼+📝</button>
     <button class="tool-btn" onclick="addTextBlock()">📝 텍스트</button>
     <button class="tool-btn" onclick="addChecklistBlock()">☑️ 체크</button>
     <button class="tool-btn" onclick="addPhotoBlock()">🖼 사진</button>
@@ -328,7 +333,20 @@ function renderMemoBody(){
     const del=document.createElement('button');del.className='block-del';del.textContent='✕';
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
     wrap.appendChild(del);
+}else if(block.type==='split'){
+    const sb=document.createElement('div');sb.className='split-block';
+    const sp=document.createElement('div');sp.className='split-photo';
+    const img=document.createElement('img');img.src=block.photo;
+    sp.appendChild(img);
+    const st=document.createElement('textarea');st.className='split-text';
+    st.value=block.text||'';st.placeholder='텍스트 입력...';
+    st.addEventListener('input',()=>{block.text=st.value;});
+    const del=document.createElement('button');del.className='block-del';del.textContent='✕';
+    del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+    sb.appendChild(sp);sb.appendChild(st);
+    wrap.appendChild(sb);wrap.appendChild(del);
 
+  }
   }else if(block.type==='video'){
     const vb=document.createElement('div');vb.className='video-block';
     if(block.url){
@@ -370,6 +388,11 @@ function addChecklistBlock(){
   currentMemo.blocks.push({id:uid(),type:'checklist',items:[{text:'',done:false}]});
   renderMemoBody();
 }
+  function addPhotoTextBlock(){
+  if(!currentMemo)return;
+  document.getElementById('photoInput').dataset.bid='split';
+  document.getElementById('photoInput').click();
+}
 function addPhotoBlock(){
   if(!currentMemo)return;
   document.getElementById('photoInput').dataset.bid='new';
@@ -386,8 +409,18 @@ function getYoutubeEmbedUrl(url){
   return m?`https://www.youtube.com/embed/${m[1]}`:null;
 }
 document.getElementById('photoInput').addEventListener('change',function(e){
+  const bid=this.dataset.bid;
   const files=Array.from(e.target.files);
   if(!files.length)return;
+  if(bid==='split'){
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      currentMemo.blocks.push({id:uid(),type:'split',photo:ev.target.result,text:''});
+      renderMemoBody();
+    };
+    reader.readAsDataURL(files[0]);
+    this.value='';return;
+  }
   let loaded=0;
   files.forEach(file=>{
     const reader=new FileReader();
@@ -401,8 +434,6 @@ document.getElementById('photoInput').addEventListener('change',function(e){
   });
   this.value='';
 });
-
-
 function showModal(title,placeholder,callback){
   document.getElementById('modalTitle').textContent=title;
   document.getElementById('modalInput').value='';
