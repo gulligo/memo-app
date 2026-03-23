@@ -181,6 +181,7 @@ function saveMemo(){
   collectMemoBlocks();
   const g=data.groups.find(x=>x.id===currentGroupId);
   const idx=g.subs.findIndex(x=>x.id===currentSubId);
+  document.querySelectorAll('.photo-item.editing').forEach(el=>el.classList.remove('editing'));
   g.subs[idx]=JSON.parse(JSON.stringify(currentMemo));
   saveData();render();
   const btn=document.getElementById('saveBtn');
