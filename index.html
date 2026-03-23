@@ -202,7 +202,7 @@ function collectMemoBlocks(){
     if(block.type==='text'){
       const edit=b.querySelector('.text-edit');
       if(edit)block.content=edit.value;
-    }else if(block.type==='checklist'){
+    }}else if(block.type==='checklist'){
       block.items=[];
       b.querySelectorAll('.check-item').forEach(ci=>{
         block.items.push({text:ci.querySelector('.check-item-text').value,done:ci.querySelector('input').checked});
