@@ -345,8 +345,6 @@ function renderMemoBody(){
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
     sb.appendChild(sp);sb.appendChild(st);
     wrap.appendChild(sb);wrap.appendChild(del);
-
-  }
   }else if(block.type==='video'){
     const vb=document.createElement('div');vb.className='video-block';
     if(block.url){
