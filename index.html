@@ -4,1135 +4,509 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>용용이 메모장</title>
-<link rel="manifest" href="manifest.json" />
-<link rel="icon" href="icon.png" type="image/png" />
-<link rel="apple-touch-icon" href="icon.png" />
 <style>
 :root{
-  --bg:#f5f5f7;
-  --card:#ffffff;
-  --border:#e5e5ea;
-  --primary:#007aff;
-  --text:#1c1c1e;
-  --muted:#8e8e93;
-  --red:#ff3b30;
-  --green:#34c759;
+  --bg:#f5f5f7; --card:#fff; --line:#e5e5ea; --blue:#007aff;
+  --text:#1c1c1e; --muted:#8e8e93; --red:#ff3b30; --green:#34c759;
 }
-*{
-  box-sizing:border-box;
-  -webkit-tap-highlight-color:transparent;
-  margin:0;
-  padding:0;
-}
-body{
-  font-family:system-ui,-apple-system,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-}
-button,input,textarea{
-  font-family:inherit;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea{font:inherit}
 .header{
-  position:sticky;
-  top:0;
-  z-index:100;
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  padding:12px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);
+  padding:12px 16px;display:flex;justify-content:space-between;align-items:center
 }
-.header-title{
-  font-size:18px;
-  font-weight:700;
+.header h1{font-size:18px}
+.icon-btn,.plain-btn{border:none;background:none;color:var(--blue);cursor:pointer}
+.icon-btn{font-size:24px}
+.main{padding:12px}
+.group{
+  background:var(--card);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);
+  margin-bottom:8px;overflow:hidden
 }
-.icon-btn{
-  border:none;
-  background:none;
-  font-size:22px;
-  color:var(--primary);
-  padding:4px;
-  cursor:pointer;
+.group-head{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.group-head strong{font-size:16px}
+.group-items{display:none;border-top:1px solid var(--line)}
+.group-items.open{display:block}
+.sub{
+  padding:12px 16px 12px 28px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;cursor:pointer
 }
-.main-view{
-  padding:12px;
+.sub:last-child{border-bottom:none}
+.sub small{display:block;color:var(--muted);margin-top:2px}
+.add-sub{padding:12px;color:var(--blue);text-align:center;cursor:pointer}
+.memo{
+  display:none;position:fixed;inset:0;background:var(--bg);z-index:100;flex-direction:column
 }
-.group-item{
-  background:var(--card);
-  border-radius:12px;
-  margin-bottom:8px;
-  overflow:hidden;
-  box-shadow:0 1px 3px rgba(0,0,0,.08);
+.memo.show{display:flex}
+.memo-head{
+  background:#fff;border-bottom:1px solid var(--line);padding:8px 16px;
+  display:flex;justify-content:space-between;align-items:center
 }
-.group-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:14px 16px;
-  cursor:pointer;
-  user-select:none;
+.back{border:none;background:none;color:var(--blue);font-size:34px;line-height:1;cursor:pointer}
+.save{
+  border:none;background:var(--blue);color:#fff;border-radius:8px;padding:7px 16px;font-weight:700;cursor:pointer
 }
-.group-name{
-  font-size:16px;
-  font-weight:700;
-}
-.group-arrow{
-  font-size:12px;
-  color:var(--muted);
-  transition:transform .2s;
-}
-.group-arrow.open{
-  transform:rotate(90deg);
-}
-.group-children{
-  display:none;
-  border-top:1px solid var(--border);
-}
-.group-children.open{
-  display:block;
-}
-.sub-item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:12px 16px 12px 28px;
-  border-bottom:1px solid var(--border);
-  cursor:pointer;
-  user-select:none;
-}
-.sub-item:last-child{
-  border-bottom:none;
-}
-.sub-name{
-  font-size:15px;
-}
-.sub-meta{
-  font-size:11px;
-  color:var(--muted);
-  margin-top:2px;
-}
-.sub-arrow{
-  font-size:16px;
-  color:var(--muted);
-}
-
-.memo-view{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:var(--bg);
-  z-index:200;
-  flex-direction:column;
-}
-.memo-view.show{
-  display:flex;
-}
-.memo-header{
-  background:#fff;
-  border-bottom:1px solid var(--border);
-  padding:8px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  flex-shrink:0;
-}
-.back-btn{
-  border:none;
-  background:none;
-  font-size:36px;
-  color:var(--primary);
-  padding:0 8px 0 0;
-  line-height:1;
-  cursor:pointer;
-}
-.save-btn{
-  border:none;
-  background:var(--primary);
-  color:#fff;
-  border-radius:8px;
-  padding:7px 16px;
-  font-size:15px;
-  font-weight:700;
-  cursor:pointer;
-}
-.memo-body{
-  flex:1;
-  overflow-y:auto;
-  padding:12px;
-  padding-top:20px;
-  position:relative;
-  -webkit-overflow-scrolling:touch;
+.canvas{
+  flex:1;overflow:auto;position:relative;padding:12px 12px 90px 12px
 }
 .toolbar{
-  background:#fff;
-  border-top:1px solid var(--border);
-  padding:8px 12px;
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  flex-shrink:0;
+  background:#fff;border-top:1px solid var(--line);padding:8px 12px;
+  display:flex;gap:8px;flex-wrap:wrap
 }
-.tool-btn{
-  border:none;
-  background:var(--bg);
-  border-radius:8px;
-  padding:8px 12px;
-  font-size:13px;
-  font-weight:600;
-  color:var(--text);
-  cursor:pointer;
+.tool{
+  border:none;background:var(--bg);border-radius:8px;padding:8px 12px;cursor:pointer
+}
+.block{position:relative;margin-bottom:10px}
+.del{
+  display:none;position:absolute;right:6px;top:6px;width:24px;height:24px;border:none;border-radius:50%;
+  background:rgba(0,0,0,.45);color:#fff;cursor:pointer;z-index:5
+}
+.block.active .del{display:block}
+
+/* movable text */
+.text-block{
+  position:absolute;min-width:120px;z-index:20
+}
+.text-box{
+  background:#fff;border:2px solid var(--blue);border-radius:10px;padding:8px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08)
+}
+.move{
+  background:var(--bg);border-radius:8px;padding:6px 10px;text-align:center;font-size:12px;
+  margin-bottom:6px;cursor:grab;user-select:none
+}
+.text-btns{display:flex;gap:6px;margin-bottom:6px}
+.text-btn{
+  border:none;background:var(--bg);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer
+}
+.text-area{
+  width:100%;border:none;outline:none;resize:none;background:transparent;color:var(--text);min-height:80px
 }
 
-.block{
-  margin-bottom:8px;
-  position:relative;
+/* checklist */
+.check-wrap{
+  background:#fff;border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06)
 }
-.block-del{
-  display:none;
-  position:absolute;
-  top:6px;
-  right:6px;
-  width:24px;
-  height:24px;
-  border:none;
-  border-radius:50%;
-  background:rgba(0,0,0,.45);
-  color:#fff;
-  font-size:12px;
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-  cursor:pointer;
-}
-.block-handle{
-  display:none;
-  position:absolute;
-  top:8px;
-  left:8px;
-  width:24px;
-  height:24px;
-  border:none;
-  border-radius:6px;
-  background:rgba(0,0,0,.25);
-  color:#fff;
-  font-size:11px;
-  align-items:center;
-  justify-content:center;
-  z-index:50;
-  cursor:grab;
-  touch-action:none;
-}
+.check-item{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.check-item:last-child{border-bottom:none}
+.check-item input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue)}
+.check-text{flex:1;border:none;outline:none;background:none}
+.check-text.done{text-decoration:line-through;color:var(--muted)}
+.add-check{border:none;background:none;color:var(--blue);padding:8px 0;cursor:pointer;width:100%;text-align:left}
 
-.free-text-block{
-  position:absolute;
-  z-index:30;
-  min-width:120px;
-}
-.free-text-box{
-  background:rgba(255,255,255,.97);
-  border:2px solid var(--primary);
-  border-radius:10px;
-  padding:8px;
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-}
-.free-text-move{
-  background:var(--bg);
-  border-radius:8px;
-  padding:6px 10px;
-  font-size:12px;
-  margin-bottom:6px;
-  text-align:center;
-  cursor:grab;
-  user-select:none;
-}
-.free-text-btns{
-  display:flex;
-  gap:6px;
-  margin-bottom:6px;
-}
-.free-text-btn{
-  border:none;
-  background:var(--bg);
-  border-radius:8px;
-  padding:6px 10px;
-  font-size:12px;
-  cursor:pointer;
-}
-.free-text-area{
-  width:100%;
-  border:none;
-  background:transparent;
-  outline:none;
-  resize:none;
-  color:var(--text);
-  min-height:80px;
-}
-
-.checklist-wrap{
-  background:var(--card);
-  border-radius:10px;
-  padding:8px 12px;
-  box-shadow:0 1px 3px rgba(0,0,0,.06);
-}
-.check-item{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 0;
-  border-bottom:1px solid var(--border);
-}
-.check-item:last-child{
-  border-bottom:none;
-}
-.check-item input[type="checkbox"]{
-  width:20px;
-  height:20px;
-  accent-color:var(--primary);
-  flex-shrink:0;
-}
-.check-item-text{
-  flex:1;
-  border:none;
-  background:none;
-  font-size:15px;
-  color:var(--text);
-  outline:none;
-}
-.check-item-text.done{
-  text-decoration:line-through;
-  color:var(--muted);
-}
-.add-check-btn{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  width:100%;
-  border:none;
-  background:none;
-  color:var(--primary);
-  padding:8px 0;
-  font-size:14px;
-  cursor:pointer;
-}
-
+/* photo */
 .photo-item{
-  position:relative;
-  margin-bottom:8px;
-  border-radius:10px;
-  overflow:hidden;
+  position:relative;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06)
 }
-.photo-item img{
-  width:100%;
-  display:block;
-  border-radius:10px;
-  transform-origin:center center;
+.photo-item img{display:block;width:100%;transform-origin:center center}
+.photo-done{
+  display:none;position:absolute;left:8px;bottom:8px;border:none;border-radius:8px;
+  background:var(--green);color:#fff;padding:6px 12px;font-weight:700
 }
-.photo-done-btn{
-  display:none;
-  position:absolute;
-  bottom:8px;
-  left:8px;
-  border:none;
-  border-radius:8px;
-  padding:6px 12px;
-  background:var(--green);
-  color:#fff;
-  font-size:12px;
-  font-weight:700;
-  z-index:5;
+.photo-x{
+  display:none;position:absolute;right:8px;top:8px;width:28px;height:28px;border:none;border-radius:50%;
+  background:rgba(0,0,0,.55);color:#fff
 }
-.photo-item.editing .photo-done-btn{
-  display:block;
-}
-.photo-del{
-  position:absolute;
-  top:6px;
-  right:6px;
-  width:26px;
-  height:26px;
-  border:none;
-  border-radius:50%;
-  background:rgba(0,0,0,.5);
-  color:#fff;
-  font-size:14px;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:5;
-}
-.photo-item.editing .photo-del{
-  display:flex;
-}
+.photo-item.editing .photo-done,.photo-item.editing .photo-x{display:block}
 
-.video-block{
-  background:var(--card);
-  border-radius:10px;
-  overflow:hidden;
-  box-shadow:0 1px 3px rgba(0,0,0,.06);
-  padding:8px;
+/* modal */
+.modal-bg{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:flex-end
 }
-.video-frame{
-  width:100%;
-  aspect-ratio:16/9;
-  border:none;
-  border-radius:8px;
-}
-.video-url-input{
-  width:100%;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px;
-  font-size:14px;
-  outline:none;
-  margin-bottom:8px;
-}
-.video-add-btn{
-  width:100%;
-  border:none;
-  border-radius:10px;
-  padding:10px;
-  background:var(--primary);
-  color:#fff;
-  font-size:14px;
-  font-weight:600;
-  cursor:pointer;
-}
-
-.modal-overlay{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  z-index:400;
-  align-items:flex-end;
-}
-.modal-overlay.show{
-  display:flex;
-}
+.modal-bg.show{display:flex}
 .modal{
-  width:100%;
-  background:var(--card);
-  border-radius:16px 16px 0 0;
-  padding:20px 16px;
+  width:100%;background:#fff;border-radius:16px 16px 0 0;padding:20px 16px
 }
-.modal-title{
-  font-size:16px;
-  font-weight:700;
-  margin-bottom:12px;
+.modal h2{font-size:16px;margin-bottom:12px}
+.modal input{
+  width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;margin-bottom:12px
 }
-.modal-input{
-  width:100%;
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:10px 12px;
-  font-size:15px;
-  outline:none;
-  margin-bottom:12px;
+.modal-row{display:flex;gap:8px}
+.modal-row button{flex:1;border:none;border-radius:10px;padding:12px;cursor:pointer}
+.ok{background:var(--blue);color:#fff}
+.cancel{background:var(--bg)}
+.ctx{
+  display:none;position:fixed;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.15);
+  overflow:hidden;z-index:300;min-width:160px
 }
-.modal-btns{
-  display:flex;
-  gap:8px;
-}
-.modal-btn{
-  flex:1;
-  border:none;
-  border-radius:10px;
-  padding:12px;
-  font-size:15px;
-  font-weight:600;
-  cursor:pointer;
-}
-.modal-btn.confirm{
-  background:var(--primary);
-  color:#fff;
-}
-.modal-btn.cancel{
-  background:var(--bg);
-  color:var(--text);
-}
-
-.ctx-menu{
-  display:none;
-  position:fixed;
-  min-width:160px;
-  background:var(--card);
-  border-radius:12px;
-  box-shadow:0 4px 20px rgba(0,0,0,.15);
-  overflow:hidden;
-  z-index:500;
-}
-.ctx-menu.show{
-  display:block;
-}
-.ctx-item{
-  padding:12px 16px;
-  font-size:15px;
-  cursor:pointer;
-  border-bottom:1px solid var(--border);
-}
-.ctx-item:last-child{
-  border-bottom:none;
-}
-.ctx-item.danger{
-  color:var(--red);
-}
+.ctx.show{display:block}
+.ctx div{padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer}
+.ctx div:last-child{border-bottom:none}
+.ctx .danger{color:var(--red)}
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="header-title">용용이 메모장</div>
-  <button class="icon-btn" onclick="showAddGroupModal()">➕</button>
+  <h1>용용이 메모장</h1>
+  <button class="icon-btn" onclick="openAddGroup()">＋</button>
 </div>
 
-<div class="main-view">
-  <div id="groupList"></div>
-</div>
+<div class="main"><div id="groups"></div></div>
 
-<div class="memo-view" id="memoView">
-  <div class="memo-header">
-    <button class="back-btn" onclick="closeMemo()">‹</button>
-    <button class="save-btn" id="saveBtn" onclick="saveMemo()">저장</button>
+<div class="memo" id="memoView">
+  <div class="memo-head">
+    <button class="back" onclick="closeMemo()">‹</button>
+    <button class="save" id="saveBtn" onclick="saveMemo()">저장</button>
   </div>
-  <div class="memo-body" id="memoBody"></div>
+  <div class="canvas" id="canvas"></div>
   <div class="toolbar">
-    <button class="tool-btn" onclick="addTextBlock()">📝 텍스트</button>
-    <button class="tool-btn" onclick="addChecklistBlock()">☑️ 체크</button>
-    <button class="tool-btn" onclick="addPhotoBlock()">🖼 사진</button>
-    <button class="tool-btn" onclick="addVideoBlock()">🎬 동영상</button>
+    <button class="tool" onclick="addText()">📝 텍스트</button>
+    <button class="tool" onclick="addChecklist()">☑️ 체크</button>
+    <button class="tool" onclick="addPhoto()">🖼 사진</button>
   </div>
 </div>
 
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-bg" id="modalBg">
   <div class="modal">
-    <div class="modal-title" id="modalTitle"></div>
-    <input class="modal-input" id="modalInput" placeholder="이름 입력" />
-    <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="closeModal()">취소</button>
-      <button class="modal-btn confirm" id="modalConfirmBtn">확인</button>
+    <h2 id="modalTitle"></h2>
+    <input id="modalInput" />
+    <div class="modal-row">
+      <button class="cancel" onclick="closeModal()">취소</button>
+      <button class="ok" id="modalOk">확인</button>
     </div>
   </div>
 </div>
 
-<div class="ctx-menu" id="ctxMenu">
-  <div class="ctx-item" id="ctxRename">이름 변경</div>
-  <div class="ctx-item" id="ctxAddSub">소그룹 추가</div>
-  <div class="ctx-item danger" id="ctxDelete">삭제</div>
+<div class="ctx" id="ctx">
+  <div id="ctxRename">이름 변경</div>
+  <div id="ctxAddSub">소그룹 추가</div>
+  <div id="ctxDelete" class="danger">삭제</div>
 </div>
 
 <input type="file" id="photoInput" accept="image/*" multiple style="display:none" />
 
 <script>
-const KEY='memo_app_v3';
+const KEY='yy_memo_v1';
+const $=s=>document.querySelector(s);
+const groupsEl=$('#groups'), canvas=$('#canvas'), memoView=$('#memoView');
+let data=load(), currentGroupId=null, currentSubId=null, currentMemo=null;
+let modalFn=null, ctxType=null, ctxInfo=null;
 
-function loadData(){
-  try{
-    const r=localStorage.getItem(KEY);
-    return r ? JSON.parse(r) : {groups:[]};
-  }catch(e){
-    return {groups:[]};
-  }
-}
-function saveData(){
-  localStorage.setItem(KEY,JSON.stringify(data));
-}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {groups:[]}; }catch{ return {groups:[]}; } }
+function persist(){ localStorage.setItem(KEY,JSON.stringify(data)); }
 
-let data=loadData();
-let currentGroupId=null;
-let currentSubId=null;
-let currentMemo=null;
-let ctxTarget=null;
-let ctxType=null;
-let modalCallback=null;
-
-function uid(){
-  return Date.now().toString(36)+Math.random().toString(36).slice(2);
-}
-
-function render(){
-  const list=document.getElementById('groupList');
-  list.innerHTML='';
-
+function renderGroups(){
+  groupsEl.innerHTML='';
   data.groups.forEach(g=>{
-    const item=document.createElement('div');
-    item.className='group-item';
+    const wrap=document.createElement('div'); wrap.className='group';
+    const head=document.createElement('div'); head.className='group-head';
+    head.innerHTML=`<strong>${g.name}</strong><span class="group-arrow ${g.open?'open':''}">▶</span>`;
+    head.onclick=()=>{ g.open=!g.open; persist(); renderGroups(); };
+    head.oncontextmenu=e=>openCtx(e,'group',{gid:g.id});
 
-    const header=document.createElement('div');
-    header.className='group-header';
-    header.innerHTML=`<div class="group-name">${g.name}</div><span class="group-arrow ${g.open?'open':''}">▶</span>`;
-    header.addEventListener('click',()=>toggleGroup(g.id));
-    header.addEventListener('contextmenu',e=>showCtx(e,'group',g.id));
-
-    const children=document.createElement('div');
-    children.className='group-children'+(g.open?' open':'');
-
+    const items=document.createElement('div'); items.className='group-items'+(g.open?' open':'');
     (g.subs||[]).forEach(s=>{
-      const row=document.createElement('div');
-      row.className='sub-item';
-      row.innerHTML=`<div><div class="sub-name">${s.name}</div><div class="sub-meta">${getSubMeta(s)}</div></div><span class="sub-arrow">›</span>`;
-      row.addEventListener('click',()=>openMemo(g.id,s.id));
-      row.addEventListener('contextmenu',e=>showCtx(e,'sub',s.id,g.id));
-      children.appendChild(row);
+      const row=document.createElement('div'); row.className='sub';
+      row.innerHTML=`<div><div>${s.name}</div><small>${metaText(s)}</small></div><span>›</span>`;
+      row.onclick=()=>openMemo(g.id,s.id);
+      row.oncontextmenu=e=>openCtx(e,'sub',{gid:g.id,sid:s.id});
+      items.appendChild(row);
     });
 
-    const addSub=document.createElement('div');
-    addSub.className='sub-item';
-    addSub.style.cssText='color:var(--primary);justify-content:center;';
-    addSub.textContent='+ 소그룹 추가';
-    addSub.addEventListener('click',()=>showAddSubModal(g.id));
-    children.appendChild(addSub);
+    const add=document.createElement('div'); add.className='add-sub'; add.textContent='+ 소그룹 추가';
+    add.onclick=()=>openAddSub(g.id);
+    items.appendChild(add);
 
-    item.appendChild(header);
-    item.appendChild(children);
-    list.appendChild(item);
+    wrap.append(head,items); groupsEl.appendChild(wrap);
   });
 }
-
-function getSubMeta(s){
-  if(!s.blocks||!s.blocks.length)return '비어있음';
-  const parts=[];
-  if(s.blocks.filter(b=>b.type==='text'&&b.content).length)parts.push('텍스트');
-  if(s.blocks.filter(b=>b.type==='checklist').length)parts.push('체크');
-  if(s.blocks.filter(b=>b.type==='photo').length)parts.push('사진');
-  if(s.blocks.filter(b=>b.type==='video'&&b.url).length)parts.push('동영상');
-  return parts.join(' · ')||'비어있음';
-}
-
-function toggleGroup(gid){
-  const g=data.groups.find(x=>x.id===gid);
-  if(!g)return;
-  g.open=!g.open;
-  saveData();
-  render();
+function metaText(s){
+  if(!s.blocks||!s.blocks.length) return '비어있음';
+  const a=[];
+  if(s.blocks.some(b=>b.type==='text'&&b.content)) a.push('텍스트');
+  if(s.blocks.some(b=>b.type==='check')) a.push('체크');
+  if(s.blocks.some(b=>b.type==='photo')) a.push('사진');
+  return a.join(' · ')||'비어있음';
 }
 
 function openMemo(gid,sid){
-  currentGroupId=gid;
-  currentSubId=sid;
+  currentGroupId=gid; currentSubId=sid;
   const g=data.groups.find(x=>x.id===gid);
   const s=g.subs.find(x=>x.id===sid);
   currentMemo=JSON.parse(JSON.stringify(s));
-  if(!currentMemo.blocks)currentMemo.blocks=[];
-  renderMemoBody();
-  document.getElementById('memoView').classList.add('show');
+  currentMemo.blocks ||= [];
+  renderMemo();
+  memoView.classList.add('show');
 }
-
-function closeMemo(){
-  document.getElementById('memoView').classList.remove('show');
-  currentMemo=null;
-}
+function closeMemo(){ memoView.classList.remove('show'); currentMemo=null; }
 
 function saveMemo(){
-  if(!currentMemo)return;
-  collectMemoBlocks();
-
+  if(!currentMemo) return;
+  collect();
   const g=data.groups.find(x=>x.id===currentGroupId);
-  const idx=g.subs.findIndex(x=>x.id===currentSubId);
-
-  document.querySelectorAll('.photo-item.editing').forEach(el=>el.classList.remove('editing'));
-
-  g.subs[idx]=JSON.parse(JSON.stringify(currentMemo));
-  saveData();
-  render();
-
-  const btn=document.getElementById('saveBtn');
-  btn.textContent='✓';
-  btn.style.background='var(--green)';
-  setTimeout(()=>{
-    btn.textContent='저장';
-    btn.style.background='var(--primary)';
-  },1200);
+  const i=g.subs.findIndex(x=>x.id===currentSubId);
+  g.subs[i]=JSON.parse(JSON.stringify(currentMemo));
+  persist(); renderGroups();
+  const btn=$('#saveBtn');
+  btn.textContent='✓'; btn.style.background='var(--green)';
+  setTimeout(()=>{btn.textContent='저장'; btn.style.background='var(--blue)';},1000);
 }
 
-function collectMemoBlocks(){
-  const nb=[];
+function collect(){
+  const next=[];
+  canvas.querySelectorAll('.block').forEach(el=>{
+    const b=currentMemo.blocks.find(x=>x.id===el.dataset.id);
+    if(!b) return;
 
-  document.getElementById('memoBody').querySelectorAll('.block').forEach(b=>{
-    const block=currentMemo.blocks.find(x=>x.id===b.dataset.bid);
-    if(!block)return;
-
-    if(block.type==='text'){
-      const ta=b.querySelector('.free-text-area');
-      if(ta){
-        block.content=ta.value;
-        block.textHeight=parseInt(ta.style.height)||140;
-        block.fontSize=parseInt(ta.style.fontSize)||16;
-      }
-      block.textTop=parseInt(b.style.top)||80;
-      block.textLeft=parseInt(b.style.left)||20;
-      block.textWidth=b.style.width || '45%';
-
-    }else if(block.type==='checklist'){
-      block.items=[];
-      b.querySelectorAll('.check-item').forEach(ci=>{
-        block.items.push({
-          text:ci.querySelector('.check-item-text').value,
-          done:ci.querySelector('input').checked
-        });
-      });
-
-    }else if(block.type==='video'){
-      const inp=b.querySelector('.video-url-input');
-      if(inp) block.url=inp.value.trim();
+    if(b.type==='text'){
+      const ta=el.querySelector('.text-area');
+      b.content=ta.value;
+      b.x=parseInt(el.style.left)||20;
+      b.y=parseInt(el.style.top)||80;
+      b.w=el.style.width||'45%';
+      b.h=parseInt(ta.style.height)||140;
+      b.size=parseInt(ta.style.fontSize)||16;
+    }else if(b.type==='check'){
+      b.items=[...el.querySelectorAll('.check-item')].map(row=>({
+        text:row.querySelector('.check-text').value,
+        done:row.querySelector('input').checked
+      }));
     }
-
-    nb.push(block);
+    next.push(b);
   });
-
-  currentMemo.blocks=nb;
+  currentMemo.blocks=next;
 }
 
-function renderMemoBody(){
-  const body=document.getElementById('memoBody');
-  body.innerHTML='';
-  (currentMemo.blocks||[]).forEach(b=>body.appendChild(createBlockEl(b)));
+function renderMemo(){
+  canvas.innerHTML='';
+  currentMemo.blocks.forEach(b=>canvas.appendChild(makeBlock(b)));
 }
 
-function createBlockEl(block){
+function makeBlock(b){
   const wrap=document.createElement('div');
   wrap.className='block';
-  wrap.dataset.bid=block.id;
+  wrap.dataset.id=b.id;
+  wrap.onclick=()=>{
+    document.querySelectorAll('.block').forEach(x=>x.classList.remove('active'));
+    wrap.classList.add('active');
+  };
 
-  const handle=document.createElement('button');
-  handle.className='block-handle';
-  handle.textContent='☰';
+  if(b.type==='text'){
+    wrap.classList.add('text-block');
+    wrap.style.left=(b.x??20)+'px';
+    wrap.style.top=(b.y??80)+'px';
+    wrap.style.width=b.w||'45%';
 
-  handle.addEventListener('touchstart',e=>{
-    e.preventDefault();
-    wrap.style.opacity='0.6';
-  },{passive:false});
+    const box=document.createElement('div'); box.className='text-box';
+    const move=document.createElement('div'); move.className='move'; move.textContent='이동';
+    const btns=document.createElement('div'); btns.className='text-btns';
+    const small=document.createElement('button'); small.className='text-btn'; small.textContent='작게';
+    const big=document.createElement('button'); big.className='text-btn'; big.textContent='크게';
+    const ta=document.createElement('textarea'); ta.className='text-area';
+    ta.value=b.content||''; ta.placeholder='내용 입력...';
+    ta.style.height=(b.h??140)+'px'; ta.style.fontSize=(b.size??16)+'px';
+    ta.oninput=()=>b.content=ta.value;
 
-  handle.addEventListener('touchmove',e=>{
-    e.preventDefault();
-    const body=document.getElementById('memoBody');
-    const blocks=Array.from(body.querySelectorAll('.block')).filter(x=>!x.classList.contains('free-text-block'));
-    const y=e.touches[0].clientY;
-
-    const target=blocks.find(b=>{
-      if(b===wrap)return false;
-      const r=b.getBoundingClientRect();
-      return y>=r.top&&y<=r.bottom;
-    });
-
-    if(target){
-      const idx=blocks.indexOf(wrap);
-      const tidx=blocks.indexOf(target);
-      if(tidx<idx) body.insertBefore(wrap,target);
-      else body.insertBefore(wrap,target.nextSibling);
-    }
-  },{passive:false});
-
-  handle.addEventListener('touchend',()=>{
-    wrap.style.opacity='1';
-    collectMemoBlocks();
-    renderMemoBody();
-  });
-
-  wrap.addEventListener('click',()=>{
-    document.querySelectorAll('.block-del,.block-handle').forEach(b=>b.style.display='none');
-    const d=wrap.querySelector('.block-del');
-    const h=wrap.querySelector('.block-handle');
-    if(d)d.style.display='flex';
-    if(h)h.style.display='flex';
-  });
-
-  if(block.type==='text'){
-    wrap.classList.add('free-text-block');
-    wrap.style.top=(block.textTop ?? 80)+'px';
-    wrap.style.left=(block.textLeft ?? 20)+'px';
-    wrap.style.width=block.textWidth ?? '45%';
-    wrap.style.zIndex='30';
-
-    const box=document.createElement('div');
-    box.className='free-text-box';
-
-    const moveBar=document.createElement('div');
-    moveBar.className='free-text-move';
-    moveBar.textContent='이동';
-
-    const btnRow=document.createElement('div');
-    btnRow.className='free-text-btns';
-
-    const smallerBtn=document.createElement('button');
-    smallerBtn.className='free-text-btn';
-    smallerBtn.type='button';
-    smallerBtn.textContent='작게';
-
-    const biggerBtn=document.createElement('button');
-    biggerBtn.className='free-text-btn';
-    biggerBtn.type='button';
-    biggerBtn.textContent='크게';
-
-    const ta=document.createElement('textarea');
-    ta.className='free-text-area';
-    ta.placeholder='내용 입력...';
-    ta.value=block.content||'';
-    ta.style.height=(block.textHeight ?? 140)+'px';
-    ta.style.fontSize=(block.fontSize ?? 16)+'px';
-
-    ta.addEventListener('input',()=>{
-      block.content=ta.value;
-    });
-
-    biggerBtn.addEventListener('click',e=>{
-      e.preventDefault();
+    big.onclick=e=>{
       e.stopPropagation();
-
-      let h=parseInt(ta.style.height)||140;
-      let fs=parseInt(ta.style.fontSize)||16;
-      let w=parseInt(wrap.style.width)||45;
-
-      h+=120;
-      fs+=6;
-      w=Math.min(80,w+10);
-
-      ta.style.height=h+'px';
-      ta.style.fontSize=fs+'px';
-      wrap.style.width=w+'%';
-
-      block.textHeight=h;
-      block.fontSize=fs;
-      block.textWidth=w+'%';
-    });
-
-    smallerBtn.addEventListener('click',e=>{
-      e.preventDefault();
+      let h=parseInt(ta.style.height)||140, s=parseInt(ta.style.fontSize)||16, w=parseInt(wrap.style.width)||45;
+      h+=120; s+=6; w=Math.min(80,w+10);
+      ta.style.height=h+'px'; ta.style.fontSize=s+'px'; wrap.style.width=w+'%';
+      b.h=h; b.size=s; b.w=w+'%';
+    };
+    small.onclick=e=>{
       e.stopPropagation();
+      let h=parseInt(ta.style.height)||140, s=parseInt(ta.style.fontSize)||16, w=parseInt(wrap.style.width)||45;
+      h=Math.max(80,h-120); s=Math.max(10,s-6); w=Math.max(20,w-10);
+      ta.style.height=h+'px'; ta.style.fontSize=s+'px'; wrap.style.width=w+'%';
+      b.h=h; b.size=s; b.w=w+'%';
+    };
 
-      let h=parseInt(ta.style.height)||140;
-      let fs=parseInt(ta.style.fontSize)||16;
-      let w=parseInt(wrap.style.width)||45;
+    let drag=false,sx=0,sy=0,startX=0,startY=0;
+    move.ontouchstart=e=>{
+      if(e.touches.length!==1) return;
+      drag=true; sx=e.touches[0].clientX; sy=e.touches[0].clientY;
+      startX=parseInt(wrap.style.left)||20; startY=parseInt(wrap.style.top)||80;
+    };
+    move.ontouchmove=e=>{
+      if(!drag) return;
+      const dx=e.touches[0].clientX-sx, dy=e.touches[0].clientY-sy;
+      wrap.style.left=(startX+dx)+'px'; wrap.style.top=(startY+dy)+'px';
+      b.x=startX+dx; b.y=startY+dy;
+    };
+    move.ontouchend=()=>drag=false;
 
-      h=Math.max(80,h-120);
-      fs=Math.max(10,fs-6);
-      w=Math.max(20,w-10);
+    const del=document.createElement('button'); del.className='del'; del.textContent='✕';
+    del.onclick=e=>{ e.stopPropagation(); currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==b.id); renderMemo(); };
 
-      ta.style.height=h+'px';
-      ta.style.fontSize=fs+'px';
-      wrap.style.width=w+'%';
+    btns.append(small,big); box.append(move,btns,ta); wrap.append(box,del);
+    return wrap;
+  }
 
-      block.textHeight=h;
-      block.fontSize=fs;
-      block.textWidth=w+'%';
-    });
+  if(b.type==='check'){
+    const box=document.createElement('div'); box.className='check-wrap';
+    (b.items||[]).forEach(it=>box.appendChild(makeCheckRow(it)));
+    const add=document.createElement('button'); add.className='add-check'; add.textContent='＋ 항목 추가';
+    add.onclick=e=>{
+      e.stopPropagation();
+      collect();
+      currentMemo.blocks.find(x=>x.id===b.id).items.push({text:'',done:false});
+      renderMemo();
+    };
+    const del=document.createElement('button'); del.className='del'; del.textContent='✕';
+    del.onclick=e=>{ e.stopPropagation(); currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==b.id); renderMemo(); };
+    box.appendChild(add); wrap.append(box,del);
+    return wrap;
+  }
 
-    let dragging=false;
-    let startX=0,startY=0,startTop=0,startLeft=0;
+  if(b.type==='photo'){
+    const item=document.createElement('div'); item.className='photo-item';
+    const img=document.createElement('img'); img.src=b.src;
+    const done=document.createElement('button'); done.className='photo-done'; done.textContent='완료';
+    const xbtn=document.createElement('button'); xbtn.className='photo-x'; xbtn.textContent='✕';
 
-    moveBar.addEventListener('touchstart',e=>{
-      if(e.touches.length!==1)return;
-      dragging=true;
-      startX=e.touches[0].clientX;
-      startY=e.touches[0].clientY;
-      startTop=parseInt(wrap.style.top)||80;
-      startLeft=parseInt(wrap.style.left)||20;
-    },{passive:true});
+    xbtn.onclick=e=>{ e.stopPropagation(); currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==b.id); renderMemo(); };
+    done.onclick=e=>{ e.stopPropagation(); item.classList.remove('editing'); };
 
-    moveBar.addEventListener('touchmove',e=>{
-      if(!dragging)return;
-      const dx=e.touches[0].clientX-startX;
-      const dy=e.touches[0].clientY-startY;
-      wrap.style.left=(startLeft+dx)+'px';
-      wrap.style.top=(startTop+dy)+'px';
-    },{passive:true});
+    let t=b.t||{r:0,s:1,x:0,y:0}, drag=false, lx=0,ly=0,sx=0,sy=0, p={dist:0,ang:0,scale:1,rot:0}, longPress=null;
+    function apply(){ img.style.transform=`translate(${t.x}px,${t.y}px) rotate(${t.r}deg) scale(${t.s})`; b.t=t; }
+    apply();
 
-    moveBar.addEventListener('touchend',()=>{
-      dragging=false;
-      block.textTop=parseInt(wrap.style.top)||80;
-      block.textLeft=parseInt(wrap.style.left)||20;
-    });
-
-    const delBtn=document.createElement('button');
-    delBtn.className='block-del';
-    delBtn.textContent='✕';
-    delBtn.addEventListener('click',()=>{
-      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
-      renderMemoBody();
-    });
-
-    btnRow.appendChild(smallerBtn);
-    btnRow.appendChild(biggerBtn);
-    box.appendChild(moveBar);
-    box.appendChild(btnRow);
-    box.appendChild(ta);
-    wrap.appendChild(box);
-    wrap.appendChild(delBtn);
-
-  }else if(block.type==='checklist'){
-    wrap.appendChild(handle);
-
-    const cl=document.createElement('div');
-    cl.className='checklist-wrap';
-
-    (block.items||[]).forEach(item=>cl.appendChild(createCheckItem(item)));
-
-    const addBtn=document.createElement('button');
-    addBtn.className='add-check-btn';
-    addBtn.textContent='＋ 항목 추가';
-    addBtn.addEventListener('click',()=>{
-      collectMemoBlocks();
-      currentMemo.blocks.find(x=>x.id===block.id).items.push({text:'',done:false});
-      renderMemoBody();
-    });
-
-    cl.appendChild(addBtn);
-    wrap.appendChild(cl);
-
-    const del=document.createElement('button');
-    del.className='block-del';
-    del.textContent='✕';
-    del.addEventListener('click',()=>{
-      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
-      renderMemoBody();
-    });
-    wrap.appendChild(del);
-
-  }else if(block.type==='photo'){
-    wrap.appendChild(handle);
-
-    const pb=document.createElement('div');
-
-    (block.photos||[]).forEach((p,i)=>{
-      if(!block.transforms)block.transforms=[];
-      if(!block.transforms[i])block.transforms[i]={r:0,s:1,x:0,y:0};
-      const t=block.transforms[i];
-
-      const pi=document.createElement('div');
-      pi.className='photo-item';
-
-      const img=document.createElement('img');
-      img.src=p;
-      img.style.transform=`rotate(${t.r}deg)`;
-      img.style.width=`${Math.round(t.s*100)}%`;
-      img.style.marginLeft=`${t.x}px`;
-      img.style.marginTop=`${t.y}px`;
-
-      const doneBtn=document.createElement('button');
-      doneBtn.className='photo-done-btn';
-      doneBtn.textContent='완료';
-      doneBtn.addEventListener('click',e=>{
-        e.stopPropagation();
-        pi.classList.remove('editing');
-        const b=currentMemo.blocks.find(x=>x.id===block.id);
-        if(b){
-          if(!b.transforms)b.transforms=[];
-          b.transforms[i]={r:t.r,s:t.s,x:t.x,y:t.y};
-        }
-      });
-
-      const pd=document.createElement('button');
-      pd.className='photo-del';
-      pd.textContent='✕';
-      pd.addEventListener('click',e=>{
-        e.stopPropagation();
-        const b=currentMemo.blocks.find(x=>x.id===block.id);
-        b.photos.splice(i,1);
-        if(b.transforms)b.transforms.splice(i,1);
-        renderMemoBody();
-      });
-
-      let pt=null;
-      let p1={dist:0,angle:0,scale:1,rotate:0};
-      let dragging=false,lx=0,ly=0,sx=0,sy=0;
-
-      pi.addEventListener('touchstart',e=>{
-        if(!pi.classList.contains('editing')){
-          pt=setTimeout(()=>pi.classList.add('editing'),600);
-          return;
-        }
-        clearTimeout(pt);
-        e.stopPropagation();
-
-        if(e.touches.length===2){
-          p1.dist=Math.hypot(
-            e.touches[0].clientX-e.touches[1].clientX,
-            e.touches[0].clientY-e.touches[1].clientY
-          );
-          p1.angle=Math.atan2(
-            e.touches[1].clientY-e.touches[0].clientY,
-            e.touches[1].clientX-e.touches[0].clientX
-          )*180/Math.PI;
-          p1.scale=t.s;
-          p1.rotate=t.r;
-        }else if(e.touches.length===1){
-          dragging=true;
-          lx=e.touches[0].clientX;
-          ly=e.touches[0].clientY;
-          sx=t.x;
-          sy=t.y;
-        }
-      },{passive:true});
-
-      pi.addEventListener('touchmove',e=>{
-        if(!pi.classList.contains('editing')){
-          clearTimeout(pt);
-          return;
-        }
-        e.preventDefault();
-
-        if(e.touches.length===2){
-          const dist=Math.hypot(
-            e.touches[0].clientX-e.touches[1].clientX,
-            e.touches[0].clientY-e.touches[1].clientY
-          );
-          const angle=Math.atan2(
-            e.touches[1].clientY-e.touches[0].clientY,
-            e.touches[1].clientX-e.touches[0].clientX
-          )*180/Math.PI;
-          t.s=Math.min(3,Math.max(0.3,p1.scale*(dist/p1.dist)));
-          t.r=p1.rotate+(angle-p1.angle);
-        }else if(dragging&&e.touches.length===1){
-          t.x=sx+(e.touches[0].clientX-lx);
-          t.y=sy+(e.touches[0].clientY-ly);
-        }
-
-        img.style.transform=`rotate(${t.r}deg)`;
-        img.style.width=`${Math.round(t.s*100)}%`;
-        img.style.marginLeft=`${t.x}px`;
-        img.style.marginTop=`${t.y}px`;
-      },{passive:false});
-
-      pi.addEventListener('touchend',e=>{
-        clearTimeout(pt);
-        if(e.touches.length===0)dragging=false;
-      });
-
-      pi.appendChild(img);
-      pi.appendChild(doneBtn);
-      pi.appendChild(pd);
-      pb.appendChild(pi);
-    });
-
-    wrap.appendChild(pb);
-
-    const del=document.createElement('button');
-    del.className='block-del';
-    del.textContent='✕';
-    del.addEventListener('click',()=>{
-      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
-      renderMemoBody();
-    });
-    wrap.appendChild(del);
-
-  }else if(block.type==='video'){
-    wrap.appendChild(handle);
-
-    const vb=document.createElement('div');
-    vb.className='video-block';
-
-    if(block.url){
-      const eu=getYoutubeEmbedUrl(block.url);
-      if(eu){
-        const f=document.createElement('iframe');
-        f.className='video-frame';
-        f.src=eu;
-        f.allowFullscreen=true;
-        f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-        vb.appendChild(f);
-      }else{
-        const inp=document.createElement('input');
-        inp.className='video-url-input';
-        inp.value=block.url||'';
-        vb.appendChild(inp);
+    item.ontouchstart=e=>{
+      if(!item.classList.contains('editing')){
+        longPress=setTimeout(()=>item.classList.add('editing'),600);
+        return;
       }
-    }else{
-      const inp=document.createElement('input');
-      inp.className='video-url-input';
-      inp.placeholder='YouTube 링크 붙여넣기';
+      clearTimeout(longPress);
+      if(e.touches.length===2){
+        p.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        p.ang=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
+        p.scale=t.s; p.rot=t.r;
+      }else if(e.touches.length===1){
+        drag=true; lx=e.touches[0].clientX; ly=e.touches[0].clientY; sx=t.x; sy=t.y;
+      }
+    };
+    item.ontouchmove=e=>{
+      if(!item.classList.contains('editing')){ clearTimeout(longPress); return; }
+      e.preventDefault();
+      if(e.touches.length===2){
+        const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        const a=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
+        t.s=Math.min(3,Math.max(0.3,p.scale*(d/p.dist)));
+        t.r=p.rot+(a-p.ang);
+      }else if(drag&&e.touches.length===1){
+        t.x=sx+(e.touches[0].clientX-lx);
+        t.y=sy+(e.touches[0].clientY-ly);
+      }
+      apply();
+    };
+    item.ontouchend=()=>{ clearTimeout(longPress); drag=false; };
 
-      const btn=document.createElement('button');
-      btn.className='video-add-btn';
-      btn.textContent='동영상 추가';
-      btn.addEventListener('click',()=>{
-        collectMemoBlocks();
-        currentMemo.blocks.find(x=>x.id===block.id).url=inp.value.trim();
-        renderMemoBody();
-      });
-
-      vb.appendChild(inp);
-      vb.appendChild(btn);
-    }
-
-    wrap.appendChild(vb);
-
-    const del=document.createElement('button');
-    del.className='block-del';
-    del.textContent='✕';
-    del.addEventListener('click',()=>{
-      currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);
-      renderMemoBody();
-    });
-    wrap.appendChild(del);
+    item.append(img,done,xbtn); wrap.appendChild(item);
+    return wrap;
   }
 
   return wrap;
 }
 
-function createCheckItem(item){
-  const ci=document.createElement('div');
-  ci.className='check-item';
+function makeCheckRow(it){
+  const row=document.createElement('div'); row.className='check-item';
+  const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=it.done;
+  const txt=document.createElement('input'); txt.className='check-text'+(it.done?' done':''); txt.value=it.text; txt.placeholder='항목 입력...';
+  cb.onchange=()=>txt.classList.toggle('done',cb.checked);
+  row.append(cb,txt); return row;
+}
 
-  const cb=document.createElement('input');
-  cb.type='checkbox';
-  cb.checked=item.done;
+function addText(){
+  if(!currentMemo) return;
+  currentMemo.blocks.push({id:uid(),type:'text',content:'',x:20,y:80,w:'45%',h:140,size:16});
+  renderMemo();
+}
+function addChecklist(){
+  if(!currentMemo) return;
+  currentMemo.blocks.push({id:uid(),type:'check',items:[{text:'',done:false}]});
+  renderMemo();
+}
+function addPhoto(){
+  if(!currentMemo) return;
+  $('#photoInput').click();
+}
 
-  const txt=document.createElement('input');
-  txt.className='check-item-text'+(item.done?' done':'');
-  txt.value=item.text;
-  txt.placeholder='항목 입력...';
-
-  cb.addEventListener('change',()=>{
-    txt.classList.toggle('done',cb.checked);
+$('#photoInput').addEventListener('change',e=>{
+  const files=[...e.target.files];
+  if(!files.length||!currentMemo) return;
+  files.forEach(file=>{
+    const r=new FileReader();
+    r.onload=x=>{
+      currentMemo.blocks.push({id:uid(),type:'photo',src:x.target.result,t:{r:0,s:1,x:0,y:0}});
+      renderMemo();
+    };
+    r.readAsDataURL(file);
   });
+  e.target.value='';
+});
 
-  ci.appendChild(cb);
-  ci.appendChild(txt);
-  return ci;
+function openModal(title,placeholder,fn){
+  $('#modalTitle').textContent=title;
+  $('#modalInput').value='';
+  $('#modalInput').placeholder=placeholder;
+  modalFn=fn;
+  $('#modalBg').classList.add('show');
+  setTimeout(()=>$('#modalInput').focus(),50);
 }
+function closeModal(){ $('#modalBg').classList.remove('show'); }
+$('#modalOk').onclick=()=>{
+  const v=$('#modalInput').value.trim();
+  if(v&&modalFn) modalFn(v);
+  closeModal();
+};
+$('#modalInput').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#modalOk').click(); });
+$('#modalBg').addEventListener('click',e=>{ if(e.target.id==='modalBg') closeModal(); });
 
-function addTextBlock(){
-  if(!currentMemo)return;
-  currentMemo.blocks.push({
-    id:uid(),
-    type:'text',
-    content:'',
-    textTop:80,
-    textLeft:20,
-    textWidth:'45%',
-    textHeight:140,
-    fontSize:16
+function openAddGroup(){
+  openModal('대그룹 추가','대그룹 이름',name=>{
+    data.groups.push({id:uid(),name,open:false,subs:[]});
+    persist(); renderGroups();
   });
-  renderMemoBody();
 }
-
-function addChecklistBlock(){
-  if(!currentMemo)return;
-  currentMemo.blocks.push({
-    id:uid(),
-    type:'checklist',
-    items:[{text:'',done:false}]
+function openAddSub(gid){
+  openModal('소그룹 추가','소그룹 이름',name=>{
+    const g=data.groups.find(x=>x.id===gid);
+    if(!g) return;
+    g.subs.push({id:uid(),name,blocks:[]});
+    g.open=true;
+    persist(); renderGroups();
   });
-  renderMemoBody();
 }
 
-function addPhotoBlock(){
-  if(!currentMemo)return;
-  document.getElementById('photoInput').dataset.bid='new';
-  document.getElementById('photoInput').click();
+function openCtx(e,type,info){
+  e.preventDefault();
+  ctxType=type; ctxInfo=info;
+  const m=$('#ctx');
+  $('#ctxAddSub').style.display=type==='group'?'block':'none';
+  m.style.left=Math.min(e.clientX,window.innerWidth-170)+'px';
+  m.style.top=Math.min(e.clientY,window.innerHeight-130)+'px';
+  m.classList.add('show');
 }
+document.addEventListener('click',()=>$('#ctx').classList.remove('show'));
 
-function addVideoBlock(){
-  if(!currentMemo)return;
-  currentMemo.blocks.push({
-    id:uid(),
-    type:'video',
-    url:''
+$('#ctxRename').onclick=()=>{
+  openModal(ctxType==='group'?'대그룹 이름 변경':'소그룹 이름 변경','새 이름',name=>{
+    if(ctxType==='group'){
+      const g=data.groups.find(x=>x.id===ctxInfo.gid);
+      if(g) g.name=name;
+    }else{
+      const g=data.groups.find(x=>x.id===ctxInfo.gid);
+      const s=g&&g.subs.find(x=>x.id===ctxInfo.sid);
+      if(s) s.name=name;
+    }
+    persist(); renderGroups();
   });
-  renderMemoBody();
-}
+};
+$('#ctxAddSub').onclick=()=>openAddSub(ctxInfo.gid);
+$('#ctxDelete').onclick=()=>{
+  if(ctxType==='group'){
+    data.groups=data.groups.filter(x=>x.id!==ctxInfo.gid);
+  }else{
+    const g=data.groups.find(x=>x.id===ctxInfo.gid);
+    if(g) g.subs=g.subs.filter(x=>x.id!==ctxInfo.sid);
+  }
+  persist(); renderGroups();
+};
 
-function getYoutubeEmbedUrl(url){
-  const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);
-  return m ? `https://www.youtube.com/embed/${m[1]}` : null;
-}
+renderGroups();
+</script>
+</body>
+</html>
