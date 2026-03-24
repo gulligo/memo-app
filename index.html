@@ -13,18 +13,19 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .icon-btn{border:none;background:none;font-size:22px;color:var(--primary);padding:4px;cursor:pointer;}
 .main-view{padding:12px;}
 .group-item{background:var(--card);border-radius:12px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
-.group-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;}
+.group-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;}
 .group-name{font-size:16px;font-weight:700;}
 .group-arrow{font-size:12px;color:var(--muted);transition:transform .2s;}
 .group-arrow.open{transform:rotate(90deg);}
 .group-children{display:none;border-top:1px solid var(--border);}
 .group-children.open{display:block;}
-.sub-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 12px 28px;border-bottom:1px solid var(--border);cursor:pointer;}
+.sub-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 12px 28px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;}
 .sub-name{font-size:15px;}
 .sub-meta{font-size:11px;color:var(--muted);margin-top:2px;}
+.sub-arrow{font-size:16px;color:var(--muted);}
+
 .memo-view{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;flex-direction:column;}
-.memo-view.show{display:flex;}
-.memo-header{background:#fff;border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;}
+.memo-header{background:#fff;border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
 .back-btn{font-size:36px;color:var(--primary);background:none;border:none;padding:0 8px;cursor:pointer;}
 .save-btn{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-weight:700;cursor:pointer;}
 .memo-body{flex:1;overflow-y:auto;padding:16px 12px;}
@@ -35,55 +36,20 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .block-del{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;display:none;align-items:center;justify-content:center;z-index:10;cursor:pointer;}
 .block:hover .block-del{display:flex;}
 
-/* ==================== 사진 블록 ==================== */
-.photo-block {
-  background:#000;
-  position:relative;
-  touch-action:none;
-}
-.photo-block img {
-  width:100%;
-  display:block;
-  transform-origin:center;
-}
+/* 사진 블록 */
+.photo-block {background:#000;position:relative;touch-action:none;}
+.photo-block img {width:100%;display:block;transform-origin:center;}
 
-/* ==================== 자유 이동 텍스트 블록 ==================== */
-.free-text-block {
-  min-height:60px;
-  background:var(--card);
-  border:2px dashed #ccc;
-  border-radius:12px;
-  padding:12px;
-  position:relative;
-  touch-action:none;
-}
-.free-text {
-  font-size:18px;
-  font-weight:600;
-  color:var(--text);
-  padding:8px 12px;
-  border-radius:8px;
-  background:rgba(255,255,255,0.9);
-  display:inline-block;
-  cursor:move;
-  transform-origin:center;
-  user-select:none;
-  white-space:pre-wrap;
-  box-shadow:0 2px 6px rgba(0,0,0,0.1);
-}
-.free-text.editing {
-  border:2px solid var(--primary);
-  background:#fff;
-  box-shadow:0 0 0 4px rgba(0,122,255,0.2);
-}
+/* 자유 이동 텍스트 블록 */
+.free-text-block {min-height:60px;background:var(--card);border:2px dashed #ccc;border-radius:12px;padding:12px;position:relative;touch-action:none;}
+.free-text {font-size:18px;font-weight:600;color:var(--text);padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.9);display:inline-block;cursor:move;transform-origin:center;user-select:none;white-space:pre-wrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+.free-text.editing {border:2px solid var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(0,122,255,0.2);}
 
-/* 기타 기존 스타일 */
+/* 체크리스트 */
 .checklist-block{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
 .check-item{display:flex;align-items:center;gap:10px;padding:8px 0;}
 .check-item input[type="checkbox"]{width:22px;height:22px;accent-color:var(--primary);}
 .check-item-text{flex:1;background:none;border:none;font-size:16px;outline:none;}
-.video-block{background:var(--card);border-radius:12px;padding:12px;}
-.video-frame{width:100%;aspect-ratio:16/9;border-radius:8px;}
 </style>
 </head>
 <body>
@@ -106,7 +72,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
     <button class="tool-btn" onclick="addTextBlock()">📝 일반텍스트</button>
     <button class="tool-btn" onclick="addFreeTextBlock()">✍️ 자유이동 텍스트</button>
     <button class="tool-btn" onclick="addChecklistBlock()">☑️ 체크리스트</button>
-    <button class="tool-btn" onclick="addPhotoBlock()">🖼 사진 (확대/이동/회전)</button>
+    <button class="tool-btn" onclick="addPhotoBlock()">🖼 사진 (이동/확대/회전)</button>
     <button class="tool-btn" onclick="addVideoBlock()">🎬 동영상</button>
   </div>
 </div>
@@ -114,33 +80,97 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 <input type="file" id="photoInput" accept="image/*" style="display:none" />
 
 <script>
-// ==================== 기본 데이터 ====================
 const KEY = 'memo_app_v2';
-let data = JSON.parse(localStorage.getItem(KEY)) || {groups:[]};
+let data = JSON.parse(localStorage.getItem(KEY)) || {groups: []};
 let currentGroupId = null, currentSubId = null, currentMemo = null;
+let ctxTarget = null, ctxType = null, modalCallback = null;
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function saveData() { localStorage.setItem(KEY, JSON.stringify(data)); }
 
-// ==================== 렌더링 ====================
 function render() {
-  // 그룹 렌더링 (기존 코드 유지)
   const list = document.getElementById('groupList');
   list.innerHTML = '';
   data.groups.forEach(g => {
-    // ... (기존 render 함수 내용 그대로 사용하고 싶으면 이전 코드에서 복사해서 넣으세요)
-    // 간단히 하기 위해 생략. 필요하면 말씀해주세요.
+    const item = document.createElement('div'); item.className = 'group-item';
+    const header = document.createElement('div'); header.className = 'group-header';
+    header.innerHTML = `<div class="group-name">${g.name}</div><span class="group-arrow ${g.open?'open':''}">▶</span>`;
+    header.addEventListener('click', () => toggleGroup(g.id));
+    header.addEventListener('contextmenu', e => showCtx(e, 'group', g.id));
+    
+    const children = document.createElement('div');
+    children.className = 'group-children' + (g.open ? ' open' : '');
+    
+    (g.subs || []).forEach(s => {
+      const si = document.createElement('div'); si.className = 'sub-item';
+      si.innerHTML = `<div><div class="sub-name">\( {s.name}</div><div class="sub-meta"> \){getSubMeta(s)}</div></div><span class="sub-arrow">›</span>`;
+      si.addEventListener('click', () => openMemo(g.id, s.id));
+      si.addEventListener('contextmenu', e => showCtx(e, 'sub', s.id, g.id));
+      children.appendChild(si);
+    });
+    
+    const addSub = document.createElement('div');
+    addSub.className = 'sub-item';
+    addSub.style.cssText = 'color:var(--primary);justify-content:center;';
+    addSub.textContent = '+ 소그룹 추가';
+    addSub.addEventListener('click', () => showAddSubModal(g.id));
+    children.appendChild(addSub);
+    
+    item.appendChild(header);
+    item.appendChild(children);
+    list.appendChild(item);
   });
+}
+
+function getSubMeta(s) {
+  if (!s.blocks || !s.blocks.length) return '비어있음';
+  const parts = [];
+  if (s.blocks.some(b => b.type === 'text' && b.content)) parts.push('텍스트');
+  if (s.blocks.some(b => b.type === 'freeText')) parts.push('자유텍스트');
+  if (s.blocks.some(b => b.type === 'checklist')) parts.push('체크');
+  if (s.blocks.some(b => b.type === 'photo')) parts.push('사진');
+  return parts.join(' · ') || '비어있음';
+}
+
+function toggleGroup(gid) {
+  const g = data.groups.find(x => x.id === gid);
+  if (g) { g.open = !g.open; saveData(); render(); }
+}
+
+function openMemo(gid, sid) {
+  currentGroupId = gid;
+  currentSubId = sid;
+  const g = data.groups.find(x => x.id === gid);
+  const s = g.subs.find(x => x.id === sid);
+  currentMemo = JSON.parse(JSON.stringify(s));
+  renderMemoBody();
+  document.getElementById('memoView').classList.add('show');
+}
+
+function closeMemo() {
+  document.getElementById('memoView').classList.remove('show');
+  currentMemo = null;
+}
+
+function saveMemo() {
+  if (!currentMemo) return;
+  const g = data.groups.find(x => x.id === currentGroupId);
+  const idx = g.subs.findIndex(x => x.id === currentSubId);
+  g.subs[idx] = JSON.parse(JSON.stringify(currentMemo));
+  saveData();
+  render();
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = '✓'; btn.style.background = 'var(--green)';
+  setTimeout(() => { btn.textContent = '저장'; btn.style.background = 'var(--primary)'; }, 1200);
 }
 
 function renderMemoBody() {
   const body = document.getElementById('memoBody');
   body.innerHTML = '';
-  (currentMemo.blocks || []).forEach(block => {
-    body.appendChild(createBlockEl(block));
-  });
+  (currentMemo.blocks || []).forEach(b => body.appendChild(createBlockEl(b)));
 }
 
+// ==================== 블록 생성 ====================
 function createBlockEl(block) {
   const wrap = document.createElement('div');
   wrap.className = 'block';
@@ -156,193 +186,174 @@ function createBlockEl(block) {
   wrap.appendChild(delBtn);
 
   if (block.type === 'photo') {
-    // ==================== 사진 블록 (확대, 이동, 회전 가능) ====================
-    wrap.innerHTML += `<div class="photo-block" style="aspect-ratio:4/3;">
-      <img src="\( {block.photo}" id="img_ \){block.id}">
-    </div>`;
-
+    wrap.innerHTML += `<div class="photo-block"><img src="\( {block.photo}" id="img_ \){block.id}"></div>`;
     const img = wrap.querySelector(`#img_${block.id}`);
-    let transform = block.transform || {x:0, y:0, scale:1, rotate:0};
+    let t = block.transform || {x:0, y:0, scale:1, rotate:0};
 
-    let startX, startY, startScale, startRotate, startDist, startAngle;
+    let sx, sy, sscale, srotate, sdist, sangle;
 
     img.addEventListener('touchstart', e => {
       if (e.touches.length === 1) {
-        startX = e.touches[0].clientX - transform.x;
-        startY = e.touches[0].clientY - transform.y;
+        sx = e.touches[0].clientX - t.x;
+        sy = e.touches[0].clientY - t.y;
       } else if (e.touches.length === 2) {
-        startDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, 
-                              e.touches[0].clientY - e.touches[1].clientY);
-        startAngle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY,
-                                e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
-        startScale = transform.scale;
-        startRotate = transform.rotate;
+        sdist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        sangle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
+        sscale = t.scale;
+        srotate = t.rotate;
       }
     });
 
     img.addEventListener('touchmove', e => {
       e.preventDefault();
       if (e.touches.length === 1) {
-        transform.x = e.touches[0].clientX - startX;
-        transform.y = e.touches[0].clientY - startY;
-      } else if (e.touches.length === 2) {
-        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, 
-                               e.touches[0].clientY - e.touches[1].clientY);
-        const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY,
-                                e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
-
-        transform.scale = Math.max(0.3, Math.min(5, startScale * (dist / startDist)));
-        transform.rotate = startRotate + (angle - startAngle);
-      }
-
-      img.style.transform = `translate(${transform.x}px, \( {transform.y}px) scale( \){transform.scale}) rotate(${transform.rotate}deg)`;
-    });
-
-    img.addEventListener('touchend', () => {
-      block.transform = transform;   // 저장
-    });
-
-    img.style.transform = `translate(${transform.x}px, \( {transform.y}px) scale( \){transform.scale}) rotate(${transform.rotate}deg)`;
-
-  } else if (block.type === 'freeText') {
-    // ==================== 자유 이동 텍스트 블록 ====================
-    const textEl = document.createElement('div');
-    textEl.className = 'free-text';
-    textEl.textContent = block.content || '자유 텍스트';
-    textEl.contentEditable = true;
-
-    let tx = block.x || 0;
-    let ty = block.y || 0;
-    let tscale = block.scale || 1;
-    let trotate = block.rotate || 0;
-
-    function updateTransform() {
-      textEl.style.transform = `translate(${tx}px, \( {ty}px) scale( \){tscale}) rotate(${trotate}deg)`;
-    }
-    updateTransform();
-
-    let startX, startY, startScale, startRotate, startDist, startAngle;
-
-    textEl.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) {
-        startX = e.touches[0].clientX - tx;
-        startY = e.touches[0].clientY - ty;
-      } else if (e.touches.length === 2) {
-        startDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-        startAngle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
-        startScale = tscale;
-        startRotate = trotate;
-      }
-    });
-
-    textEl.addEventListener('touchmove', e => {
-      e.preventDefault();
-      if (e.touches.length === 1) {
-        tx = e.touches[0].clientX - startX;
-        ty = e.touches[0].clientY - startY;
+        t.x = e.touches[0].clientX - sx;
+        t.y = e.touches[0].clientY - sy;
       } else if (e.touches.length === 2) {
         const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
-        tscale = Math.max(0.5, Math.min(4, startScale * (dist / startDist)));
-        trotate = startRotate + (angle - startAngle);
+        t.scale = Math.max(0.3, Math.min(5, sscale * (dist / sdist)));
+        t.rotate = srotate + (angle - sangle);
       }
-      updateTransform();
+      img.style.transform = `translate(${t.x}px, \( {t.y}px) scale( \){t.scale}) rotate(${t.rotate}deg)`;
     });
 
-    textEl.addEventListener('touchend', () => {
-      block.x = tx;
-      block.y = ty;
-      block.scale = tscale;
-      block.rotate = trotate;
-      block.content = textEl.textContent;
+    img.addEventListener('touchend', () => block.transform = t);
+
+  } else if (block.type === 'freeText') {
+    const txt = document.createElement('div');
+    txt.className = 'free-text';
+    txt.contentEditable = true;
+    txt.textContent = block.content || '자유 텍스트';
+
+    let tx = block.x || 20, ty = block.y || 30, tscale = block.scale || 1, trot = block.rotate || 0;
+
+    function update() {
+      txt.style.transform = `translate(${tx}px, \( {ty}px) scale( \){tscale}) rotate(${trot}deg)`;
+    }
+    update();
+
+    let sx, sy, sscale, srot, sdist, sangle;
+
+    txt.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        sx = e.touches[0].clientX - tx;
+        sy = e.touches[0].clientY - ty;
+      } else if (e.touches.length === 2) {
+        sdist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        sangle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
+        sscale = tscale; srot = trot;
+      }
     });
 
-    textEl.addEventListener('blur', () => {
-      block.content = textEl.textContent;
+    txt.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (e.touches.length === 1) {
+        tx = e.touches[0].clientX - sx;
+        ty = e.touches[0].clientY - sy;
+      } else if (e.touches.length === 2) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
+        tscale = Math.max(0.5, Math.min(4, sscale * (dist / sdist)));
+        trot = srot + (angle - sangle);
+      }
+      update();
     });
 
-    wrap.appendChild(textEl);
+    txt.addEventListener('touchend', () => {
+      block.x = tx; block.y = ty; block.scale = tscale; block.rotate = trot;
+      block.content = txt.textContent;
+    });
 
-  } else if (block.type === 'text') {
-    // 기존 일반 텍스트 (간단 버전)
-    const ta = document.createElement('textarea');
-    ta.value = block.content || '';
-    ta.style.width = '100%';
-    ta.style.minHeight = '80px';
-    ta.style.fontSize = '16px';
-    ta.oninput = () => block.content = ta.value;
-    wrap.appendChild(ta);
+    txt.addEventListener('blur', () => block.content = txt.textContent);
+    wrap.appendChild(txt);
   }
 
   return wrap;
 }
 
-// ==================== 블록 추가 함수 ====================
-function addPhotoBlock() {
-  if (!currentMemo) return;
-  document.getElementById('photoInput').dataset.type = 'photo';
-  document.getElementById('photoInput').click();
-}
-
-function addFreeTextBlock() {
-  if (!currentMemo) return;
-  currentMemo.blocks.push({
-    id: uid(),
-    type: 'freeText',
-    content: '자유롭게 움직여보세요',
-    x: 20, y: 30, scale: 1, rotate: 0
-  });
-  renderMemoBody();
-}
-
+// 블록 추가 함수들
 function addTextBlock() {
   if (!currentMemo) return;
   currentMemo.blocks.push({id: uid(), type: 'text', content: ''});
   renderMemoBody();
 }
+function addFreeTextBlock() {
+  if (!currentMemo) return;
+  currentMemo.blocks.push({id: uid(), type: 'freeText', content: '자유롭게 움직여보세요', x: 30, y: 50, scale: 1, rotate: 0});
+  renderMemoBody();
+}
+function addChecklistBlock() {
+  if (!currentMemo) return;
+  currentMemo.blocks.push({id: uid(), type: 'checklist', items: [{text:'', done:false}]});
+  renderMemoBody();
+}
+function addPhotoBlock() {
+  if (!currentMemo) return;
+  document.getElementById('photoInput').click();
+}
+function addVideoBlock() { /* 필요하면 추가 */ alert('동영상 기능은 추후 추가 예정입니다'); }
 
-function addChecklistBlock() { /* 기존 체크리스트 */ }
-function addVideoBlock() { /* 기존 동영상 */ }
-
-// 사진 파일 처리
-document.getElementById('photoInput').addEventListener('change', function(e) {
-  const files = Array.from(e.target.files);
-  if (!files.length || !currentMemo) return;
-
+// 사진 처리
+document.getElementById('photoInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file || !currentMemo) return;
   const reader = new FileReader();
   reader.onload = ev => {
     currentMemo.blocks.push({
       id: uid(),
       type: 'photo',
       photo: ev.target.result,
-      transform: {x:0, y:0, scale:1, rotate:0}
+      transform: {x: 0, y: 0, scale: 1, rotate: 0}
     });
     renderMemoBody();
   };
-  reader.readAsDataURL(files[0]);
-  this.value = '';
+  reader.readAsDataURL(file);
+  e.target.value = '';
 });
 
-// 저장, 열기 등 기존 함수들 (간단하게 유지)
-function saveMemo() {
-  if (!currentMemo) return;
-  saveData();
-  alert('저장되었습니다!');
+// 모달 & 컨텍스트 메뉴 (이름 변경 포함)
+function showModal(title, placeholder, callback) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalInput').value = '';
+  document.getElementById('modalInput').placeholder = placeholder;
+  modalCallback = callback;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+function showAddGroupModal() {
+  showModal('대그룹 추가', '대그룹 이름', name => {
+    data.groups.push({id: uid(), name, open: true, subs: []});
+    saveData(); render();
+  });
+}
+function showAddSubModal(gid) {
+  showModal('소그룹 추가', '소그룹 이름', name => {
+    const g = data.groups.find(x => x.id === gid);
+    if (g) {
+      g.subs.push({id: uid(), name, blocks: []});
+      saveData(); render();
+    }
+  });
 }
 
-function openMemo(gid, sid) {
-  // 기존 openMemo 로직...
-  currentMemo = {blocks: []}; // 테스트용
-  renderMemoBody();
-  document.getElementById('memoView').classList.add('show');
+function showCtx(e, type, id, parentId) {
+  e.preventDefault();
+  ctxType = type;
+  ctxTarget = {id, parentId};
+  // ctx 메뉴는 필요시 추가 가능 (지금은 간단히 이름 변경만)
+  showModal(type === 'group' ? '대그룹 이름 변경' : '소그룹 이름 변경', '새 이름', newName => {
+    if (type === 'group') {
+      const g = data.groups.find(x => x.id === id);
+      if (g) g.name = newName;
+    } else {
+      const g = data.groups.find(x => x.id === parentId);
+      const s = g && g.subs.find(x => x.id === id);
+      if (s) s.name = newName;
+    }
+    saveData(); render();
+  });
 }
 
-function closeMemo() {
-  document.getElementById('memoView').classList.remove('show');
-}
-
-// 초기 실행
-render();
-</script>
-</body>
-</html>
+// 모달 HTML 추가 (코드
