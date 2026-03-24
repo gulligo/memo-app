@@ -32,16 +32,16 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .tool-btn{border:none;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;}
 .block{margin-bottom:10px;position:relative;width:100%;}
 .block.dragging{opacity: 0.5;}
-.block-handle{position:absolute;top:5px;left:0;background:var(--border);color:var(--muted);border:none;border-radius:4px;width:24px;height:35px;display:flex;align-items:center;justify-content:center;touch-action:none;z-index:10;font-size:14px;}
-.text-container{margin-left:32px;position:relative;}
-.text-view{background:var(--card);border-radius:10px;padding:10px 12px;font-size:15px;min-height:44px;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
-.text-view.empty{color:var(--muted);}
+.block-handle{position:absolute;top:50%;left:0;transform:translateY(-50%);background:var(--border);color:var(--muted);border:none;border-radius:4px;width:28px;height:40px;display:flex;align-items:center;justify-content:center;touch-action:none;z-index:10;font-size:16px;}
+.text-container{margin-left:35px;position:relative;}
+.text-view{background:var(--card);border-radius:10px;padding:12px;font-size:15px;min-height:20px;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
+.text-view.empty{display:none;}
 .text-edit{display:none;width:100%;min-height:100px;border:2px solid var(--primary);border-radius:10px;padding:10px;outline:none;font-size:15px;}
 .text-edit.show{display:block;}
-.text-done-btn, .text-del-btn{display:none;position:absolute;top:4px;background:var(--green);color:#fff;border:none;border-radius:6px;padding:3px 8px;font-size:11px;z-index:20;}
+.text-done-btn, .text-del-btn{display:none;position:absolute;top:-35px;background:var(--green);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:13px;z-index:20;}
 .text-done-btn.show, .text-del-btn.show{display:block;}
-.text-done-btn{right:4px;} .text-del-btn{right:50px; background:var(--red);}
-.checklist-block{background:var(--card);border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06); margin-left:32px;}
+.text-done-btn{right:0;} .text-del-btn{right:65px; background:var(--red);}
+.checklist-block{background:var(--card);border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06); margin-left:35px;}
 .check-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
 .check-item-text{flex:1;border:none;background:none;font-size:15px;outline:none;}
 .check-item-text.done{text-decoration:line-through;color:var(--muted);}
@@ -52,7 +52,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .photo-item.editing .photo-done-btn, .photo-item.editing .photo-del{display:flex;}
 .photo-done-btn{bottom:10px;left:10px;background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 15px;}
 .photo-del{top:10px;right:10px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:30px;height:30px;align-items:center;justify-content:center;}
-.video-block{background:var(--card);border-radius:10px;overflow:hidden;padding:8px;position:relative; margin-left:32px;}
+.video-block{background:var(--card);border-radius:10px;overflow:hidden;padding:8px;position:relative; margin-left:35px;}
 .video-frame{width:100%;aspect-ratio:16/9;border:none;border-radius:8px;}
 .video-url-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;}
 .video-add-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:600;}
@@ -81,7 +81,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal"><input class="modal-input" id="modalInput" /><div class="modal-btns"><button class="modal-btn confirm" id="modalConfirmBtn">확인</button><button class="modal-btn" onclick="closeModal()">취소</button></div></div>
 </div>
-<input type="file" id="photoInput" accept="image/*" style="display:none" />
+<input type="file" id="photoInput" accept="image/*" multiple style="display:none" />
 <script>
 const KEY='memo_app_v1';
 let data=localStorage.getItem(KEY)?JSON.parse(localStorage.getItem(KEY)):{groups:[]};
@@ -98,8 +98,7 @@ function render(){
     const children=document.createElement('div'); children.className='group-children'+(g.open?' open':'');
     (g.subs||[]).forEach(s=>{
       const si=document.createElement('div'); si.className='sub-item';
-      const m = s.blocks ? s.blocks.length : 0;
-      si.innerHTML=`<div><div class="sub-name">${s.name}</div><div class="sub-meta">블록 ${m}개</div></div>`;
+      si.innerHTML=`<div><div class="sub-name">${s.name}</div><div class="sub-meta">블록 ${(s.blocks||[]).length}개</div></div>`;
       si.onclick=()=>openMemo(g.id,s.id);
       children.appendChild(si);
     });
@@ -163,14 +162,15 @@ function createBlockEl(block){
   if(block.type==='text'){
     const cont=document.createElement('div'); cont.className='text-container';
     const view=document.createElement('div'); view.className='text-view'+(block.content?'':' empty');
-    view.textContent=block.content||'길게 눌러 편집';
+    view.textContent=block.content||'';
     const edit=document.createElement('textarea'); edit.className='text-edit'; edit.value=block.content||'';
     const done=document.createElement('button'); done.className='text-done-btn'; done.textContent='완료';
     const del=document.createElement('button'); del.className='text-del-btn'; del.textContent='삭제';
     let timer;
     view.ontouchstart=()=>{timer=setTimeout(()=>{view.style.display='none'; edit.classList.add('show'); done.classList.add('show'); del.classList.add('show'); edit.focus();},600);};
     view.ontouchend=()=>clearTimeout(timer);
-    done.onclick=()=>{block.content=edit.value; view.textContent=edit.value||'길게 눌러 편집'; view.style.display=''; edit.classList.remove('show'); done.classList.remove('show'); del.classList.remove('show'); collectMemoBlocks();};
+    if(!block.content){view.style.display='none'; edit.classList.add('show'); done.classList.add('show'); del.classList.add('show');}
+    done.onclick=()=>{block.content=edit.value; view.textContent=edit.value; if(edit.value){view.classList.remove('empty'); view.style.display='';} else {view.classList.add('empty');} edit.classList.remove('show'); done.classList.remove('show'); del.classList.remove('show'); collectMemoBlocks();};
     del.onclick=()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id); renderMemoBody();};
     cont.append(view, edit, done, del); wrap.appendChild(cont);
   } else if(block.type==='checklist'){
@@ -228,14 +228,15 @@ function addChecklistBlock(){currentMemo.blocks.push({id:uid(),type:'checklist',
 function addPhotoBlock(){document.getElementById('photoInput').click();}
 function addVideoBlock(){currentMemo.blocks.push({id:uid(),type:'video',url:''}); renderMemoBody();}
 document.getElementById('photoInput').onchange=(e)=>{
-  if(!e.target.files[0]) return;
-  const reader=new FileReader();
-  reader.onload=(ev)=>{
-    if(!currentMemo.blocks) currentMemo.blocks = [];
-    currentMemo.blocks.push({id:uid(),type:'photo',photos:[ev.target.result],transform:{r:0,s:1,x:0,y:0}});
-    renderMemoBody();
-  };
-  reader.readAsDataURL(e.target.files[0]);
+  const files = e.target.files; if(!files.length) return;
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      currentMemo.blocks.push({id:uid(),type:'photo',photos:[ev.target.result],transform:{r:0,s:1,x:0,y:0}});
+      if(file === files[files.length-1]) renderMemoBody();
+    };
+    reader.readAsDataURL(file);
+  });
   e.target.value='';
 };
 function showAddGroupModal(){document.getElementById('modalOverlay').classList.add('show'); document.getElementById('modalConfirmBtn').onclick=()=>{const n=document.getElementById('modalInput').value; if(n){data.groups.push({id:uid(),name:n,open:true,subs:[]}); saveData(); render(); closeModal();}};}
