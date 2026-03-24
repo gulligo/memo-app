@@ -34,21 +34,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 
 .block{margin-bottom:12px;position:relative;border-radius:12px;overflow:hidden;}
 .block-del{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:16px;display:none;align-items:center;justify-content:center;z-index:10;cursor:pointer;}
-.block:hover .block-del{display:flex;}
-
-/* 사진 블록 */
-.photo-block {background:#000;position:relative;touch-action:none;}
-.photo-block img {width:100%;display:block;transform-origin:center;}
-
-/* 자유 이동 텍스트 블록 */
-.free-text {font-size:18px;font-weight:600;color:var(--text);padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.9);display:inline-block;cursor:move;transform-origin:center;user-select:none;white-space:pre-wrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-.free-text.editing {border:2px solid var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(0,122,255,0.2);}
-
-/* 체크리스트 */
-.checklist-block{background:var(--card);border-radius:10px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.check-item{display:flex;align-items:center;gap:10px;padding:8px 0;}
-.check-item input[type="checkbox"]{width:22px;height:22px;accent-color:var(--primary);}
-.check-item-text{flex:1;background:none;border:none;font-size:16px;outline:none;}
+.photo-block{background:#000;position:relative;touch-action:none;}
+.photo-block img{width:100%;display:block;transform-origin:center;}
+.free-text{font-size:18px;font-weight:600;color:var(--text);padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.9);display:inline-block;cursor:move;transform-origin:center;user-select:none;white-space:pre-wrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
 </style>
 </head>
 <body>
@@ -66,17 +54,15 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
     <button class="save-btn" id="saveBtn" onclick="saveMemo()">저장</button>
   </div>
   <div class="memo-body" id="memoBody"></div>
-  
   <div class="toolbar">
-    <button class="tool-btn" onclick="addTextBlock()">📝 일반텍스트</button>
-    <button class="tool-btn" onclick="addFreeTextBlock()">✍️ 자유이동 텍스트</button>
-    <button class="tool-btn" onclick="addChecklistBlock()">☑️ 체크리스트</button>
-    <button class="tool-btn" onclick="addPhotoBlock()">🖼 사진 (이동/확대/회전)</button>
-    <button class="tool-btn" onclick="addVideoBlock()">🎬 동영상</button>
+    <button class="tool-btn" onclick="addFreeTextBlock()">✍️ 자유텍스트</button>
+    <button class="tool-btn" onclick="addPhotoBlock()">🖼 사진</button>
+    <button class="tool-btn" onclick="addTextBlock()">📝 텍스트</button>
+    <button class="tool-btn" onclick="addChecklistBlock()">☑️ 체크</button>
   </div>
 </div>
 
-<input type="file" id="photoInput" accept="image/*" style="display:none" />
+<input type="file" id="photoInput" accept="image/*" style="display:none">
 
 <script>
 const KEY = 'memo_app_v2';
@@ -90,17 +76,10 @@ function saveData() { localStorage.setItem(KEY, JSON.stringify(data)); }
 function render() {
   const list = document.getElementById('groupList');
   list.innerHTML = '';
-
   data.groups.forEach(g => {
-    const item = document.createElement('div');
-    item.className = 'group-item';
-
-    const header = document.createElement('div');
-    header.className = 'group-header';
-    header.innerHTML = `
-      <div class="group-name">${g.name}</div>
-      <span class="group-arrow ${g.open ? 'open' : ''}">▶</span>
-    `;
+    const item = document.createElement('div'); item.className = 'group-item';
+    const header = document.createElement('div'); header.className = 'group-header';
+    header.innerHTML = `<div class="group-name">${g.name}</div><span class="group-arrow ${g.open?'open':''}">▶</span>`;
     header.addEventListener('click', () => toggleGroup(g.id));
     header.addEventListener('contextmenu', e => showCtx(e, 'group', g.id));
 
@@ -108,15 +87,8 @@ function render() {
     children.className = 'group-children' + (g.open ? ' open' : '');
 
     (g.subs || []).forEach(s => {
-      const si = document.createElement('div');
-      si.className = 'sub-item';
-      si.innerHTML = `
-        <div>
-          <div class="sub-name">${s.name}</div>
-          <div class="sub-meta">${getSubMeta(s)}</div>
-        </div>
-        <span class="sub-arrow">›</span>
-      `;
+      const si = document.createElement('div'); si.className = 'sub-item';
+      si.innerHTML = `<div><div class="sub-name">\( {s.name}</div><div class="sub-meta"> \){getSubMeta(s)}</div></div><span class="sub-arrow">›</span>`;
       si.addEventListener('click', () => openMemo(g.id, s.id));
       si.addEventListener('contextmenu', e => showCtx(e, 'sub', s.id, g.id));
       children.appendChild(si);
@@ -137,26 +109,21 @@ function render() {
 
 function getSubMeta(s) {
   if (!s.blocks || !s.blocks.length) return '비어있음';
-  const parts = [];
-  if (s.blocks.some(b => b.type === 'text')) parts.push('텍스트');
-  if (s.blocks.some(b => b.type === 'freeText')) parts.push('자유텍스트');
-  if (s.blocks.some(b => b.type === 'checklist')) parts.push('체크');
-  if (s.blocks.some(b => b.type === 'photo')) parts.push('사진');
-  return parts.join(' · ') || '비어있음';
+  const p = [];
+  if (s.blocks.some(b => b.type === 'text')) p.push('텍스트');
+  if (s.blocks.some(b => b.type === 'freeText')) p.push('자유텍스트');
+  if (s.blocks.some(b => b.type === 'checklist')) p.push('체크');
+  if (s.blocks.some(b => b.type === 'photo')) p.push('사진');
+  return p.join(' · ') || '비어있음';
 }
 
 function toggleGroup(gid) {
   const g = data.groups.find(x => x.id === gid);
-  if (g) {
-    g.open = !g.open;
-    saveData();
-    render();
-  }
+  if (g) { g.open = !g.open; saveData(); render(); }
 }
 
 function openMemo(gid, sid) {
-  currentGroupId = gid;
-  currentSubId = sid;
+  currentGroupId = gid; currentSubId = sid;
   const g = data.groups.find(x => x.id === gid);
   const s = g ? g.subs.find(x => x.id === sid) : null;
   if (s) {
@@ -176,18 +143,13 @@ function saveMemo() {
   const g = data.groups.find(x => x.id === currentGroupId);
   if (g) {
     const idx = g.subs.findIndex(x => x.id === currentSubId);
-    if (idx !== -1) g.subs[idx] = JSON.parse(JSON.stringify(currentMemo));
+    if (idx > -1) g.subs[idx] = JSON.parse(JSON.stringify(currentMemo));
   }
   saveData();
   render();
-
   const btn = document.getElementById('saveBtn');
-  btn.textContent = '✓';
-  btn.style.background = 'var(--green)';
-  setTimeout(() => {
-    btn.textContent = '저장';
-    btn.style.background = 'var(--primary)';
-  }, 1200);
+  btn.textContent = '✓'; btn.style.background = 'var(--green)';
+  setTimeout(() => { btn.textContent = '저장'; btn.style.background = 'var(--primary)'; }, 1200);
 }
 
 function renderMemoBody() {
@@ -201,83 +163,62 @@ function createBlockEl(block) {
   wrap.className = 'block';
   wrap.dataset.bid = block.id;
 
-  const delBtn = document.createElement('button');
-  delBtn.className = 'block-del';
-  delBtn.textContent = '✕';
-  delBtn.onclick = () => {
+  const del = document.createElement('button');
+  del.className = 'block-del';
+  del.textContent = '✕';
+  del.onclick = () => {
     currentMemo.blocks = currentMemo.blocks.filter(b => b.id !== block.id);
     renderMemoBody();
   };
-  wrap.appendChild(delBtn);
+  wrap.appendChild(del);
 
   if (block.type === 'photo') {
     wrap.innerHTML += `<div class="photo-block"><img src="\( {block.photo}" id="img_ \){block.id}"></div>`;
     const img = wrap.querySelector(`#img_${block.id}`);
     let t = block.transform || {x:0, y:0, scale:1, rotate:0};
-
     let sx, sy, sscale, srotate, sdist, sangle;
 
     img.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) {
-        sx = e.touches[0].clientX - t.x;
-        sy = e.touches[0].clientY - t.y;
-      } else if (e.touches.length === 2) {
+      if (e.touches.length === 1) { sx = e.touches[0].clientX - t.x; sy = e.touches[0].clientY - t.y; }
+      else if (e.touches.length === 2) {
         sdist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         sangle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
-        sscale = t.scale;
-        srotate = t.rotate;
+        sscale = t.scale; srotate = t.rotate;
       }
     });
-
     img.addEventListener('touchmove', e => {
       e.preventDefault();
-      if (e.touches.length === 1) {
-        t.x = e.touches[0].clientX - sx;
-        t.y = e.touches[0].clientY - sy;
-      } else if (e.touches.length === 2) {
+      if (e.touches.length === 1) { t.x = e.touches[0].clientX - sx; t.y = e.touches[0].clientY - sy; }
+      else if (e.touches.length === 2) {
         const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
         t.scale = Math.max(0.3, Math.min(5, sscale * (dist / sdist)));
         t.rotate = srotate + (angle - sangle);
       }
-      img.style.transform = `translate(${t.x}px, \( {t.y}px) scale( \){t.scale}) rotate(${t.rotate}deg)`;
+      img.style.transform = `translate(\( {t.x}px, \){t.y}px)scale(\( {t.scale})rotate( \){t.rotate}deg)`;
     });
-
     img.addEventListener('touchend', () => { block.transform = t; });
-
   } else if (block.type === 'freeText') {
     const txt = document.createElement('div');
     txt.className = 'free-text';
     txt.contentEditable = true;
     txt.textContent = block.content || '자유 텍스트';
-
     let tx = block.x || 20, ty = block.y || 30, tscale = block.scale || 1, trot = block.rotate || 0;
-
-    function update() {
-      txt.style.transform = `translate(${tx}px, \( {ty}px) scale( \){tscale}) rotate(${trot}deg)`;
-    }
+    function update() { txt.style.transform = `translate(\( {tx}px, \){ty}px)scale(\( {tscale})rotate( \){trot}deg)`; }
     update();
-
     let sx, sy, sscale, srot, sdist, sangle;
-
     txt.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) {
-        sx = e.touches[0].clientX - tx;
-        sy = e.touches[0].clientY - ty;
-      } else if (e.touches.length === 2) {
+      if (e.touches.length === 1) { sx = e.touches[0].clientX - tx; sy = e.touches[0].clientY - ty; }
+      else if (e.touches.length === 2) {
         sdist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         sangle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
-        sscale = tscale;
-        srot = trot;
+        sscale = tscale; srot = trot;
       }
     });
-
     txt.addEventListener('touchmove', e => {
       e.preventDefault();
-      if (e.touches.length === 1) {
-        tx = e.touches[0].clientX - sx;
-        ty = e.touches[0].clientY - sy;
-      } else if (e.touches.length === 2) {
+      if (e.touches.length === 1) { tx = e.touches[0].clientX - sx; ty = e.touches[0].clientY - sy; }
+      else if (e.touches.length === 2) {
         const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
         tscale = Math.max(0.5, Math.min(4, sscale * (dist / sdist)));
@@ -285,62 +226,33 @@ function createBlockEl(block) {
       }
       update();
     });
-
     txt.addEventListener('touchend', () => {
       block.x = tx; block.y = ty; block.scale = tscale; block.rotate = trot;
       block.content = txt.textContent;
     });
-
     txt.addEventListener('blur', () => block.content = txt.textContent);
     wrap.appendChild(txt);
   }
-
   return wrap;
 }
 
-// 블록 추가
-function addTextBlock() {
-  if (!currentMemo) return;
-  currentMemo.blocks.push({id: uid(), type: 'text', content: ''});
-  renderMemoBody();
-}
-function addFreeTextBlock() {
-  if (!currentMemo) return;
-  currentMemo.blocks.push({id: uid(), type: 'freeText', content: '자유롭게 움직여보세요', x: 30, y: 50, scale: 1, rotate: 0});
-  renderMemoBody();
-}
-function addChecklistBlock() {
-  if (!currentMemo) return;
-  currentMemo.blocks.push({id: uid(), type: 'checklist', items: [{text:'', done:false}]});
-  renderMemoBody();
-}
-function addPhotoBlock() {
-  if (!currentMemo) return;
-  document.getElementById('photoInput').click();
-}
-function addVideoBlock() {
-  alert('동영상 기능은 준비 중입니다.');
-}
+function addTextBlock() { if(currentMemo){ currentMemo.blocks.push({id:uid(),type:'text',content:''}); renderMemoBody(); }}
+function addFreeTextBlock() { if(currentMemo){ currentMemo.blocks.push({id:uid(),type:'freeText',content:'자유 텍스트',x:30,y:50,scale:1,rotate:0}); renderMemoBody(); }}
+function addChecklistBlock() { if(currentMemo){ currentMemo.blocks.push({id:uid(),type:'checklist',items:[{text:'',done:false}]}); renderMemoBody(); }}
+function addPhotoBlock() { if(currentMemo) document.getElementById('photoInput').click(); }
 
-// 사진 파일 처리
 document.getElementById('photoInput').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file || !currentMemo) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    currentMemo.blocks.push({
-      id: uid(),
-      type: 'photo',
-      photo: ev.target.result,
-      transform: {x: 0, y: 0, scale: 1, rotate: 0}
-    });
+    currentMemo.blocks.push({id:uid(),type:'photo',photo:ev.target.result,transform:{x:0,y:0,scale:1,rotate:0}});
     renderMemoBody();
   };
   reader.readAsDataURL(file);
   e.target.value = '';
 });
 
-// 모달 관련
 function showModal(title, placeholder, callback) {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('modalInput').value = '';
@@ -348,9 +260,7 @@ function showModal(title, placeholder, callback) {
   modalCallback = callback;
   document.getElementById('modalOverlay').style.display = 'flex';
 }
-function closeModal() {
-  document.getElementById('modalOverlay').style.display = 'none';
-}
+function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
 window.modalConfirm = () => {
   const val = document.getElementById('modalInput').value.trim();
   if (val && modalCallback) modalCallback(val);
@@ -359,49 +269,36 @@ window.modalConfirm = () => {
 
 function showAddGroupModal() {
   showModal('대그룹 추가', '대그룹 이름', name => {
-    data.groups.push({id: uid(), name, open: true, subs: []});
-    saveData();
-    render();
+    data.groups.push({id:uid(), name, open:true, subs:[]});
+    saveData(); render();
   });
 }
-
 function showAddSubModal(gid) {
   showModal('소그룹 추가', '소그룹 이름', name => {
     const g = data.groups.find(x => x.id === gid);
-    if (g) {
-      g.subs.push({id: uid(), name, blocks: []});
-      saveData();
-      render();
-    }
+    if (g) g.subs.push({id:uid(), name, blocks:[]});
+    saveData(); render();
   });
 }
-
 function showCtx(e, type, id, parentId) {
   e.preventDefault();
-  showModal(
-    type === 'group' ? '대그룹 이름 변경' : '소그룹 이름 변경',
-    '새 이름',
-    newName => {
-      if (type === 'group') {
-        const g = data.groups.find(x => x.id === id);
-        if (g) g.name = newName;
-      } else {
-        const g = data.groups.find(x => x.id === parentId);
-        const s = g && g.subs.find(x => x.id === id);
-        if (s) s.name = newName;
-      }
-      saveData();
-      render();
+  showModal(type === 'group' ? '대그룹 이름 변경' : '소그룹 이름 변경', '새 이름', newName => {
+    if (type === 'group') {
+      const g = data.groups.find(x => x.id === id); if (g) g.name = newName;
+    } else {
+      const g = data.groups.find(x => x.id === parentId);
+      const s = g && g.subs.find(x => x.id === id); if (s) s.name = newName;
     }
-  );
+    saveData(); render();
+  });
 }
 
 // 모달 HTML 추가
 document.body.insertAdjacentHTML('beforeend', `
-<div class="modal-overlay" id="modalOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:400;align-items:flex-end;justify-content:center;">
-  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px 16px;width:100%;max-width:400px;">
+<div id="modalOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:400;align-items:flex-end;justify-content:center;">
+  <div style="background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:400px;">
     <div id="modalTitle" style="font-size:17px;font-weight:700;margin-bottom:12px;"></div>
-    <input id="modalInput" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px;" />
+    <input id="modalInput" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px;">
     <div style="display:flex;gap:8px;margin-top:16px;">
       <button onclick="closeModal()" style="flex:1;padding:12px;background:#eee;border:none;border-radius:10px;">취소</button>
       <button onclick="modalConfirm()" style="flex:1;padding:12px;background:var(--primary);color:white;border:none;border-radius:10px;">확인</button>
@@ -409,7 +306,7 @@ document.body.insertAdjacentHTML('beforeend', `
   </div>
 </div>`);
 
-render();
+render();  // ← 메인 화면을 그리는 핵심 줄
 </script>
 </body>
 </html>
