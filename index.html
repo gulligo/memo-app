@@ -307,81 +307,98 @@ function createBlockEl(block){
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
     wrap.appendChild(del);
 
-      } else if (block.type === 'photo') {
-    // 1. 사진을 담는 통 (여기서 overflow: visible이 핵심!)
+        } else if (block.type === 'photo') {
     const pbContainer = document.createElement('div');
-    pbContainer.className = 'photo-block';
     pbContainer.style.position = 'relative';
-    pbContainer.style.minHeight = '250px';
-    pbContainer.style.overflow = 'visible'; // 사진 밖으로 나가는 것을 허용함
+    pbContainer.style.minHeight = '300px';
+    pbContainer.style.overflow = 'visible';
 
+    // [1] 사진 먼저 그리기
     (block.photos || []).forEach((p, i) => {
-      // ... (기존 사진 변환 및 터치 로직은 동일하므로 생략) ...
-      // 용용이님이 넣으신 img와 pi 생성 코드를 여기에 그대로 두세요.
-    });
-
-    // 2. 텍스트 레이어 설정
-    if (!block.overlay) block.overlay = { text: '', x: 20, y: 20, size: 16 };
-    const ov = block.overlay;
-
-    const textLayer = document.createElement('div');
-    textLayer.style.position = 'absolute';
-    textLayer.style.left = ov.x + 'px';
-    textLayer.style.top = ov.y + 'px';
-    textLayer.style.zIndex = '9999'; // 무조건 맨 위
-    textLayer.style.padding = '10px';
-    textLayer.style.background = 'rgba(255, 255, 255, 0.9)';
-    textLayer.style.border = '2px solid #007bff';
-    textLayer.style.borderRadius = '10px';
-    textLayer.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
-    textLayer.style.touchAction = 'none'; // 스크롤 방해 금지
-    textLayer.style.minWidth = '100px';
-    textLayer.textContent = ov.text || '여기를 잡아 끌어서 이동';
-
-    // 3. 이동 엔진 (사진 영역 제한 해제)
-    let isMoving = false;
-    let startX, startY, initialX, initialY;
-
-    textLayer.addEventListener('touchstart', (e) => {
-      e.stopPropagation(); 
-      isMoving = true;
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      initialX = ov.x;
-      initialY = ov.y;
-    }, { passive: false });
-
-    textLayer.addEventListener('touchmove', (e) => {
-      if (!isMoving) return;
-      e.preventDefault(); 
-      e.stopPropagation();
-
-      // 여기서 ov.x와 ov.y를 제한 없이 업데이트합니다.
-      ov.x = initialX + (e.touches[0].clientX - startX);
-      ov.y = initialY + (e.touches[0].clientY - startY);
+      const t = block.transforms[i];
+      const pi = document.createElement('div');
+      pi.className = 'photo-item';
+      pi.style.width = '100%';
       
-      textLayer.style.left = ov.x + 'px';
-      textLayer.style.top = ov.y + 'px';
-    }, { passive: false });
-
-    textLayer.addEventListener('touchend', () => { isMoving = false; });
-
-    // 4. 입력창 (길게 누르기)
-    let tTimer;
-    textLayer.addEventListener('touchstart', () => {
-      tTimer = setTimeout(() => {
-        const val = prompt('사진 위에 보일 메모를 입력하세요', ov.text);
-        if(val !== null) {
-          ov.text = val;
-          textLayer.textContent = val || '메모 입력';
-        }
-      }, 800);
+      const img = document.createElement('img');
+      img.src = p;
+      img.style.width = '100%';
+      img.style.transform = `translate(${t.x}px, ${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
+      
+      // 사진 편집(확대/축소) 로직은 여기에 그대로 유지...
+      pi.appendChild(img);
+      pbContainer.appendChild(pi);
     });
-    textLayer.addEventListener('touchend', () => clearTimeout(tTimer));
 
-    // [가장 중요] pbContainer가 아니라 wrap에 직접 붙여야 사진 영역에 안 갇힙니다.
-    pbContainer.appendChild(textLayer); 
+    // [2] 그 위에 텍스트 틀 올리기
+    const ov = block.overlay;
+    if (ov && ov.show) {
+      const textWrap = document.createElement('div');
+      // 저장 후에는 테두리(border)를 없애기 위해 조건부 스타일 적용
+      const isSaved = document.body.classList.contains('view-mode'); // 저장 상태 확인용
+      
+      textWrap.style.cssText = `
+        position: absolute;
+        left: ${ov.x}px;
+        top: ${ov.y}px;
+        z-index: 1000;
+        display: flex;
+        align-items: flex-start;
+        gap: 5px;
+        touch-action: none;
+      `;
+
+      // 입력창 (틀 안에서 기입)
+      const input = document.createElement('textarea');
+      input.value = ov.text;
+      input.placeholder = '내용 입력';
+      input.style.cssText = `
+        width: 150px;
+        height: 60px;
+        font-size: 14px;
+        padding: 5px;
+        resize: none;
+        background: rgba(255,255,255,0.7);
+        border: ${isSaved ? 'none' : '2px solid #007bff'}; // 저장 후 테두리 삭제
+        border-radius: 8px;
+      `;
+      input.addEventListener('input', () => { ov.text = input.value; });
+
+      // 텍스트 삭제 버튼 (빨간색)
+      const delBtn = document.createElement('button');
+      delBtn.textContent = '✕';
+      delBtn.style.cssText = `
+        width: 20px; height: 20px; background: red; color: white;
+        border: none; border-radius: 50%; cursor: pointer;
+        display: ${isSaved ? 'none' : 'block'}; // 저장 후 버튼 삭제
+      `;
+      delBtn.onclick = () => { ov.show = false; renderMemoBody(); };
+
+      // 드래그 이동 로직
+      let isMoving = false, ox, oy, sx, sy;
+      textWrap.ontouchstart = e => {
+        if(e.target === input) return; // 글 쓸 때는 안 움직이게
+        isMoving = true;
+        ox = e.touches[0].clientX; oy = e.touches[0].clientY;
+        sx = ov.x; sy = ov.y;
+        e.stopPropagation();
+      };
+      window.ontouchmove = e => {
+        if(!isMoving) return;
+        ov.x = sx + (e.touches[0].clientX - ox);
+        ov.y = sy + (e.touches[0].clientY - oy);
+        textWrap.style.left = ov.x + 'px';
+        textWrap.style.top = ov.y + 'px';
+      };
+      window.ontouchend = () => { isMoving = false; };
+
+      textWrap.appendChild(input);
+      textWrap.appendChild(delBtn);
+      pbContainer.appendChild(textWrap);
+    }
+
     wrap.appendChild(pbContainer);
+
 
 
     
