@@ -27,32 +27,28 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .memo-header{background:#fff;border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;}
 .back-btn{border:none;background:none;font-size:36px;color:var(--primary);cursor:pointer;}
 .save-btn{border:none;background:var(--primary);color:#fff;border-radius:8px;padding:7px 16px;font-size:15px;font-weight:700;}
-.memo-body{flex:1;overflow-y:auto;padding:12px;position:relative;}
+.memo-body{flex:1;overflow-y:auto;padding:12px;}
 .toolbar{background:#fff;border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;flex-wrap:wrap;}
 .tool-btn{border:none;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;}
-.block{margin-bottom:10px;position:relative;width:100%;}
-.block.dragging{opacity: 0.5;}
-.block-handle{position:absolute;top:50%;left:0;transform:translateY(-50%);background:var(--border);color:var(--muted);border:none;border-radius:4px;width:28px;height:40px;display:flex;align-items:center;justify-content:center;touch-action:none;z-index:10;font-size:16px;}
-.text-container{margin-left:35px;position:relative;}
-.text-view{background:var(--card);border-radius:10px;padding:12px;font-size:15px;min-height:20px;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
-.text-view.empty{display:none;}
+.block{margin-bottom:10px;position:relative;}
+.text-view{background:var(--card);border-radius:10px;padding:12px;font-size:15px;min-height:44px;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
 .text-edit{display:none;width:100%;min-height:100px;border:2px solid var(--primary);border-radius:10px;padding:10px;outline:none;font-size:15px;}
 .text-edit.show{display:block;}
 .text-done-btn, .text-del-btn{display:none;position:absolute;top:-35px;background:var(--green);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:13px;z-index:20;}
 .text-done-btn.show, .text-del-btn.show{display:block;}
 .text-done-btn{right:0;} .text-del-btn{right:65px; background:var(--red);}
-.checklist-block{background:var(--card);border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06); margin-left:35px;}
+.checklist-block{background:var(--card);border-radius:10px;padding:8px 12px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
 .check-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
 .check-item-text{flex:1;border:none;background:none;font-size:15px;outline:none;}
 .check-item-text.done{text-decoration:line-through;color:var(--muted);}
 .add-check-btn{color:var(--primary);font-size:14px;border:none;background:none;padding:8px 0;width:100%;text-align:left;}
-.photo-item{position:relative;margin-bottom:5px; background:none; touch-action:none; overflow:visible; width:100%;}
+.photo-item{position:relative;margin-bottom:5px; touch-action:none;}
 .photo-item img{width:100%;display:block; transform-origin:center;}
 .photo-done-btn, .photo-del{display:none;position:absolute;z-index:30;}
 .photo-item.editing .photo-done-btn, .photo-item.editing .photo-del{display:flex;}
 .photo-done-btn{bottom:10px;left:10px;background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 15px;}
 .photo-del{top:10px;right:10px;background:rgba(0,0,0,0.5);color:#fff;border-radius:50%;width:30px;height:30px;align-items:center;justify-content:center;}
-.video-block{background:var(--card);border-radius:10px;overflow:hidden;padding:8px;position:relative; margin-left:35px;}
+.video-block{background:var(--card);border-radius:10px;overflow:hidden;padding:8px;position:relative;}
 .video-frame{width:100%;aspect-ratio:16/9;border:none;border-radius:8px;}
 .video-url-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;}
 .video-add-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:10px;font-weight:600;}
@@ -145,34 +141,17 @@ function renderMemoBody(){
 }
 function createBlockEl(block){
   const wrap=document.createElement('div'); wrap.className='block'; wrap.dataset.bid=block.id;
-  if(block.type !== 'photo') {
-    const handle=document.createElement('div'); handle.className='block-handle'; handle.innerHTML='☰';
-    handle.ontouchstart=()=>wrap.classList.add('dragging');
-    handle.ontouchmove=(e)=>{
-      e.preventDefault(); const touch=e.touches[0]; const body=document.getElementById('memoBody');
-      const afterElement=[...body.querySelectorAll('.block:not(.dragging)')].reduce((closest, child)=>{
-        const box=child.getBoundingClientRect(); const offset=touch.clientY-box.top-box.height/2;
-        return (offset<0 && offset>closest.offset)?{offset,element:child}:closest;
-      },{offset:Number.NEGATIVE_INFINITY}).element;
-      if(!afterElement) body.appendChild(wrap); else body.insertBefore(wrap,afterElement);
-    };
-    handle.ontouchend=()=>{wrap.classList.remove('dragging'); collectMemoBlocks();};
-    wrap.appendChild(handle);
-  }
   if(block.type==='text'){
-    const cont=document.createElement('div'); cont.className='text-container';
-    const view=document.createElement('div'); view.className='text-view'+(block.content?'':' empty');
-    view.textContent=block.content||'';
+    const view=document.createElement('div'); view.className='text-view'; view.textContent=block.content||'길게 눌러 편집';
     const edit=document.createElement('textarea'); edit.className='text-edit'; edit.value=block.content||'';
     const done=document.createElement('button'); done.className='text-done-btn'; done.textContent='완료';
     const del=document.createElement('button'); del.className='text-del-btn'; del.textContent='삭제';
     let timer;
     view.ontouchstart=()=>{timer=setTimeout(()=>{view.style.display='none'; edit.classList.add('show'); done.classList.add('show'); del.classList.add('show'); edit.focus();},600);};
     view.ontouchend=()=>clearTimeout(timer);
-    if(!block.content){view.style.display='none'; edit.classList.add('show'); done.classList.add('show'); del.classList.add('show');}
-    done.onclick=()=>{block.content=edit.value; view.textContent=edit.value; if(edit.value){view.classList.remove('empty'); view.style.display='';} else {view.classList.add('empty');} edit.classList.remove('show'); done.classList.remove('show'); del.classList.remove('show'); collectMemoBlocks();};
+    done.onclick=()=>{block.content=edit.value; view.textContent=edit.value||'길게 눌러 편집'; view.style.display=''; edit.classList.remove('show'); done.classList.remove('show'); del.classList.remove('show'); collectMemoBlocks();};
     del.onclick=()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id); renderMemoBody();};
-    cont.append(view, edit, done, del); wrap.appendChild(cont);
+    wrap.append(view, edit, done, del);
   } else if(block.type==='checklist'){
     const cl=document.createElement('div'); cl.className='checklist-block';
     (block.items||[]).forEach(item=>{
@@ -219,7 +198,7 @@ function createBlockEl(block){
       vb.append(inp, btn);
     }
     const vDel=document.createElement('div'); vDel.className='photo-del'; vDel.style.display='flex'; vDel.innerHTML='✕'; vDel.onclick=()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id); renderMemoBody();};
-    vb.appendChild(vDel); wrap.appendChild(vb);
+    vb.appendChild(vDel); wrap.appendChild(vDel); wrap.appendChild(vb);
   }
   return wrap;
 }
@@ -229,11 +208,12 @@ function addPhotoBlock(){document.getElementById('photoInput').click();}
 function addVideoBlock(){currentMemo.blocks.push({id:uid(),type:'video',url:''}); renderMemoBody();}
 document.getElementById('photoInput').onchange=(e)=>{
   const files = e.target.files; if(!files.length) return;
+  let loaded = 0;
   Array.from(files).forEach(file => {
     const reader = new FileReader();
     reader.onload = (ev) => {
       currentMemo.blocks.push({id:uid(),type:'photo',photos:[ev.target.result],transform:{r:0,s:1,x:0,y:0}});
-      if(file === files[files.length-1]) renderMemoBody();
+      loaded++; if(loaded === files.length) renderMemoBody();
     };
     reader.readAsDataURL(file);
   });
