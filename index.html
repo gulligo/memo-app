@@ -307,71 +307,118 @@ function createBlockEl(block){
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
     wrap.appendChild(del);
 
-  }else if(block.type==='photo'){
-    const pb=document.createElement('div');pb.className='photo-block';
-    (block.photos||[]).forEach((p,i)=>{
-      if(!block.transforms)block.transforms=[];
-      if(!block.transforms[i])block.transforms[i]={r:0,s:1,x:0,y:0};
-      const t=block.transforms[i];
-      const pi=document.createElement('div');pi.className='photo-item';
-      const img=document.createElement('img');img.src=p;
-      img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
-      const doneBtn=document.createElement('button');doneBtn.className='photo-done-btn';doneBtn.textContent='완료';
-      doneBtn.addEventListener('click',e=>{
+  } else if (block.type === 'photo') {
+    const pb = document.createElement('div');
+    pb.className = 'photo-block';
+
+    (block.photos || []).forEach((p, i) => {
+      if (!block.transforms) block.transforms = [];
+      if (!block.transforms[i]) block.transforms[i] = { r: 0, s: 1, x: 0, y: 0 };
+      const t = block.transforms[i];
+
+      const pi = document.createElement('div');
+      pi.className = 'photo-item';
+
+      const img = document.createElement('img');
+      img.src = p;
+      img.style.transform = `rotate(${t.r}deg)`;
+      img.style.width = `${Math.round(t.s * 100)}%`;
+      img.style.marginLeft = `${t.x}px`;
+      img.style.marginTop = `${t.y}px`;
+
+      const doneBtn = document.createElement('button');
+      doneBtn.className = 'photo-done-btn';
+      doneBtn.textContent = '완료';
+      doneBtn.addEventListener('click', e => {
         e.stopPropagation();
         pi.classList.remove('editing');
-        const b=currentMemo.blocks.find(x=>x.id===block.id);
-        if(b){if(!b.transforms)b.transforms=[];b.transforms[i]={r:t.r,s:t.s,x:t.x,y:t.y};}
+        const b = currentMemo.blocks.find(x => x.id === block.id);
+        if (b) {
+          if (!b.transforms) b.transforms = [];
+          b.transforms[i] = { r: t.r, s: t.s, x: t.x, y: t.y };
+        }
       });
-      const pd=document.createElement('button');pd.className='photo-del';pd.textContent='✕';
-      pd.addEventListener('click',e=>{
+
+      const pd = document.createElement('button');
+      pd.className = 'photo-del';
+      pd.textContent = '✕';
+      pd.addEventListener('click', e => {
         e.stopPropagation();
-        const b=currentMemo.blocks.find(x=>x.id===block.id);
-        b.photos.splice(i,1);if(b.transforms)b.transforms.splice(i,1);
+        const b = currentMemo.blocks.find(x => x.id === block.id);
+        if (b) {
+          b.photos.splice(i, 1);
+          if (b.transforms) b.transforms.splice(i, 1);
+        }
         renderMemoBody();
       });
-      let pt=null;
-      let p1={dist:0,angle:0,scale:1,rotate:0};
-      let dragging=false,lx=0,ly=0,sx=0,sy=0;
-      pi.addEventListener('touchstart',e=>{
-        if(!pi.classList.contains('editing')){
-          pt=setTimeout(()=>pi.classList.add('editing'),600);
+
+      let pt = null;
+      let p1 = { dist: 0, angle: 0, scale: 1, rotate: 0 };
+      let dragging = false, lx = 0, ly = 0, sx = 0, sy = 0;
+
+      pi.addEventListener('touchstart', e => {
+        if (!pi.classList.contains('editing')) {
+          pt = setTimeout(() => pi.classList.add('editing'), 600);
           return;
         }
         clearTimeout(pt);
         e.stopPropagation();
-        if(e.touches.length===2){
-          p1.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-          p1.angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-          p1.scale=t.s;p1.rotate=t.r;
-        }else if(e.touches.length===1){
-          dragging=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;sx=t.x;sy=t.y;
+        if (e.touches.length === 2) {
+          p1.dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+          p1.angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
+          p1.scale = t.s;
+          p1.rotate = t.r;
+        } else if (e.touches.length === 1) {
+          dragging = true;
+          lx = e.touches[0].clientX;
+          ly = e.touches[0].clientY;
+          sx = t.x;
+          sy = t.y;
         }
-      },{passive:true});
-      pi.addEventListener('touchmove',e=>{
-        if(!pi.classList.contains('editing')){clearTimeout(pt);return;}
+      }, { passive: true });
+
+      pi.addEventListener('touchmove', e => {
+        if (!pi.classList.contains('editing')) { clearTimeout(pt); return; }
         e.preventDefault();
-        if(e.touches.length===2){
-          const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-          const angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-          t.s=Math.min(3,Math.max(0.3,p1.scale*(dist/p1.dist)));
-          t.r=p1.rotate+(angle-p1.angle);
-        }else if(dragging&&e.touches.length===1){
-          t.x=sx+(e.touches[0].clientX-lx);
-          t.y=sy+(e.touches[0].clientY-ly);
+        if (e.touches.length === 2) {
+          const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+          const angle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
+          t.s = Math.min(3, Math.max(0.3, p1.scale * (dist / p1.dist)));
+          t.r = p1.rotate + (angle - p1.angle);
+        } else if (dragging && e.touches.length === 1) {
+          t.x = sx + (e.touches[0].clientX - lx);
+          t.y = sy + (e.touches[0].clientY - ly);
         }
-        img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
-      },{passive:false});
-      pi.addEventListener('touchend',e=>{clearTimeout(pt);if(e.touches.length===0)dragging=false;});
-      pi.appendChild(img);pi.appendChild(doneBtn);pi.appendChild(pd);
+        img.style.transform = `rotate(${t.r}deg)`;
+        img.style.width = `${Math.round(t.s * 100)}%`;
+        img.style.marginLeft = `${t.x}px`;
+        img.style.marginTop = `${t.y}px`;
+      }, { passive: false });
+
+      pi.addEventListener('touchend', e => {
+        clearTimeout(pt);
+        if (e.touches.length === 0) dragging = false;
+      });
+
+      pi.appendChild(img);
+      pi.appendChild(doneBtn);
+      pi.appendChild(pd);
       pb.appendChild(pi);
     });
-});
+
     wrap.appendChild(pb);
-    const del=document.createElement('button');del.className='block-del';del.textContent='✕';
-    del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+
+    const del = document.createElement('button');
+    del.className = 'block-del';
+    del.textContent = '✕';
+    del.addEventListener('click', () => {
+      currentMemo.blocks = currentMemo.blocks.filter(x => x.id !== block.id);
+      renderMemoBody();
+    });
     wrap.appendChild(del);
-  }else if(block.type==='split'){
+
+  } else if (block.type === 'split') {
+  
     if(!block.transform)block.transform={r:0,s:1};
     const t=block.transform;
     const sb=document.createElement('div');sb.className='split-block';
