@@ -306,69 +306,114 @@ function createBlockEl(block){
     const del=document.createElement('button');del.className='block-del';del.textContent='✕';
     del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
     wrap.appendChild(del);
-  }else if(block.type==='photo'){
-    const pb=document.createElement('div');pb.className='photo-block';
-    (block.photos||[]).forEach((p,i)=>{
-      if(!block.transforms)block.transforms=[];
-      if(!block.transforms[i])block.transforms[i]={r:0,s:1,x:0,y:0};
-      const t=block.transforms[i];
-      const pi=document.createElement('div');pi.className='photo-item';
-      const img=document.createElement('img');img.src=p;
-      img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
-      const doneBtn=document.createElement('button');doneBtn.className='photo-done-btn';doneBtn.textContent='완료';
-      doneBtn.addEventListener('click',e=>{
-        e.stopPropagation();
-        pi.classList.remove('editing');
-        const b=currentMemo.blocks.find(x=>x.id===block.id);
-        if(b){if(!b.transforms)b.transforms=[];b.transforms[i]={r:t.r,s:t.s,x:t.x,y:t.y};}
-      });
-      const pd=document.createElement('button');pd.className='photo-del';pd.textContent='✕';
-      pd.addEventListener('click',e=>{
-        e.stopPropagation();
-        const b=currentMemo.blocks.find(x=>x.id===block.id);
-        b.photos.splice(i,1);if(b.transforms)b.transforms.splice(i,1);
-        renderMemoBody();
-      });
-      let pt=null;
-      let p1={dist:0,angle:0,scale:1,rotate:0};
-      let dragging=false,lx=0,ly=0,sx=0,sy=0;
-      pi.addEventListener('touchstart',e=>{
-        if(!pi.classList.contains('editing')){
-          pt=setTimeout(()=>pi.classList.add('editing'),600);
-          return;
-        }
-        clearTimeout(pt);
-        e.stopPropagation();
+    } else if (block.type === 'photo') {
+    const pbContainer = document.createElement('div');
+    pbContainer.className = 'photo-block';
+    pbContainer.style.position = 'relative'; // [중요] 1번: 사진을 기준점으로 설정
+    pbContainer.style.minHeight = '200px';
+    pbContainer.style.overflow = 'visible'; // [중요] 글자가 사진 밖으로 나갈 수 있게 허용
+
+    (block.photos || []).forEach((p, i) => {
+      if (!block.transforms) block.transforms = [];
+      if (!block.transforms[i]) block.transforms[i] = { r: 0, s: 1, x: 0, y: 0 };
+      const t = block.transforms[i];
+
+      const pi = document.createElement('div');
+      pi.className = 'photo-item';
+      
+      const img = document.createElement('img');
+      img.src = p;
+      img.style.transform = `translate(${t.x}px, ${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
+      
+      // --- 기존의 확대/축소/회전/이동 터치 로직 시작 ---
+      let pt=null, p1={dist:0,angle:0,scale:1,rotate:0}, dragging=false, lx=0, ly=0, sx=0, sy=0;
+      pi.addEventListener('touchstart', e => {
+        if(!pi.classList.contains('editing')){ pt=setTimeout(()=>pi.classList.add('editing'),600); return; }
+        clearTimeout(pt); e.stopPropagation();
         if(e.touches.length===2){
           p1.dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
           p1.angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-          p1.scale=t.s;p1.rotate=t.r;
-        }else if(e.touches.length===1){
-          dragging=true;lx=e.touches[0].clientX;ly=e.touches[0].clientY;sx=t.x;sy=t.y;
-        }
+          p1.scale=t.s; p1.rotate=t.r;
+        }else if(e.touches.length===1){ dragging=true; lx=e.touches[0].clientX; ly=e.touches[0].clientY; sx=t.x; sy=t.y; }
       },{passive:true});
-      pi.addEventListener('touchmove',e=>{
-        if(!pi.classList.contains('editing')){clearTimeout(pt);return;}
-        e.preventDefault();
+      pi.addEventListener('touchmove', e => {
+        if(!pi.classList.contains('editing')){clearTimeout(pt);return;} e.preventDefault();
         if(e.touches.length===2){
           const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
           const angle=Math.atan2(e.touches[1].clientY-e.touches[0].clientY,e.touches[1].clientX-e.touches[0].clientX)*180/Math.PI;
-          t.s=Math.min(3,Math.max(0.3,p1.scale*(dist/p1.dist)));
-          t.r=p1.rotate+(angle-p1.angle);
-        }else if(dragging&&e.touches.length===1){
-          t.x=sx+(e.touches[0].clientX-lx);
-          t.y=sy+(e.touches[0].clientY-ly);
-        }
-        img.style.transform=`rotate(${t.r}deg)`;img.style.width=`${Math.round(t.s*100)}%`;img.style.marginLeft=`${t.x}px`;img.style.marginTop=`${t.y}px`;
+          t.s=Math.min(3,Math.max(0.3,p1.scale*(dist/p1.dist))); t.r=p1.rotate+(angle-p1.angle);
+        }else if(dragging&&e.touches.length===1){ t.x=sx+(e.touches[0].clientX-lx); t.y=sy+(e.touches[0].clientY-ly); }
+        img.style.transform=`translate(${t.x}px, ${t.y}px) rotate(${t.r}deg) scale(${t.s})`;
       },{passive:false});
-      pi.addEventListener('touchend',e=>{clearTimeout(pt);if(e.touches.length===0)dragging=false;});
-      pi.appendChild(img);pi.appendChild(doneBtn);pi.appendChild(pd);
-      pb.appendChild(pi);
+      pi.addEventListener('touchend', e => {clearTimeout(pt); if(e.touches.length===0) dragging=false;});
+      // --- 기존 터치 로직 끝 ---
+
+      pi.appendChild(img);
+      pbContainer.appendChild(pi);
     });
-    wrap.appendChild(pb);
-    const del=document.createElement('button');del.className='block-del';del.textContent='✕';
-    del.addEventListener('click',()=>{currentMemo.blocks=currentMemo.blocks.filter(x=>x.id!==block.id);renderMemoBody();});
+
+    // --- [새 기능] 사진 위에 겹치는 텍스트 레이어 ---
+    if (!block.overlay) block.overlay = { text: '', x: 10, y: 10, size: 15 };
+    const ov = block.overlay;
+
+    const textLayer = document.createElement('div');
+    textLayer.style.position = 'absolute';
+    textLayer.style.left = ov.x + 'px';
+    textLayer.style.top = ov.y + 'px';
+    textLayer.style.zIndex = '50';
+    textLayer.style.padding = '5px 8px';
+    textLayer.style.background = 'rgba(255,255,255,0.7)'; // 반투명 배경
+    textLayer.style.borderRadius = '5px';
+    textLayer.style.fontSize = ov.size + 'px';
+    textLayer.style.border = '1px dashed var(--primary)';
+    textLayer.style.whiteSpace = 'nowrap';
+    textLayer.textContent = ov.text || '여기를 길게 눌러 메모 입력';
+
+    // 텍스트 이동용 변수
+    let tx=0, ty=0, tlx=0, tly=0, tDragging=false;
+
+    textLayer.addEventListener('touchstart', e => {
+      if(e.touches.length === 1) {
+        tDragging = true;
+        tlx = e.touches[0].clientX;
+        tly = e.touches[0].clientY;
+        tx = ov.x; ty = ov.y;
+        e.stopPropagation(); // 사진 이동과 겹치지 않게
+      }
+    }, {passive: true});
+
+    textLayer.addEventListener('touchmove', e => {
+      if(!tDragging) return;
+      e.preventDefault();
+      ov.x = tx + (e.touches[0].clientX - tlx);
+      ov.y = ty + (e.touches[0].clientY - tly);
+      textLayer.style.left = ov.x + 'px';
+      textLayer.style.top = ov.y + 'px';
+    }, {passive: false});
+
+    textLayer.addEventListener('touchend', () => { tDragging = false; });
+
+    // 텍스트 내용 입력 (길게 누르기)
+    let textTimer;
+    textLayer.addEventListener('touchstart', () => {
+      textTimer = setTimeout(() => {
+        showModal('사진 메모 입력', '내용을 입력하세요', val => {
+          ov.text = val;
+          textLayer.textContent = val || '여기를 길게 눌러 메모 입력';
+        });
+      }, 800);
+    });
+    textLayer.addEventListener('touchend', () => clearTimeout(textTimer));
+
+    pbContainer.appendChild(textLayer);
+    wrap.appendChild(pbContainer);
+
+    const del = document.createElement('button');
+    del.className = 'block-del'; del.textContent = '✕';
+    del.addEventListener('click', () => { currentMemo.blocks = currentMemo.blocks.filter(x => x.id !== block.id); renderMemoBody(); });
     wrap.appendChild(del);
+
+    
   }else if(block.type==='split'){
     if(!block.transform)block.transform={r:0,s:1};
     const t=block.transform;
