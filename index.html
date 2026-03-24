@@ -41,6 +41,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .photo-block img {width:100%;display:block;transform-origin:center;}
 
 /* 자유 이동 텍스트 블록 */
+.free-text-block {min-height:60px;background:var(--card);border:2px dashed #ccc;border-radius:12px;padding:12px;position:relative;touch-action:none;}
 .free-text {font-size:18px;font-weight:600;color:var(--text);padding:8px 12px;border-radius:8px;background:rgba(255,255,255,0.9);display:inline-block;cursor:move;transform-origin:center;user-select:none;white-space:pre-wrap;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
 .free-text.editing {border:2px solid var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(0,122,255,0.2);}
 
@@ -82,7 +83,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 const KEY = 'memo_app_v2';
 let data = JSON.parse(localStorage.getItem(KEY)) || {groups: []};
 let currentGroupId = null, currentSubId = null, currentMemo = null;
-let modalCallback = null;
+let ctxTarget = null, ctxType = null, modalCallback = null;
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function saveData() { localStorage.setItem(KEY, JSON.stringify(data)); }
@@ -90,45 +91,31 @@ function saveData() { localStorage.setItem(KEY, JSON.stringify(data)); }
 function render() {
   const list = document.getElementById('groupList');
   list.innerHTML = '';
-
   data.groups.forEach(g => {
-    const item = document.createElement('div');
-    item.className = 'group-item';
-
-    const header = document.createElement('div');
-    header.className = 'group-header';
-    header.innerHTML = `
-      <div class="group-name">${g.name}</div>
-      <span class="group-arrow ${g.open ? 'open' : ''}">▶</span>
-    `;
+    const item = document.createElement('div'); item.className = 'group-item';
+    const header = document.createElement('div'); header.className = 'group-header';
+    header.innerHTML = `<div class="group-name">${g.name}</div><span class="group-arrow ${g.open?'open':''}">▶</span>`;
     header.addEventListener('click', () => toggleGroup(g.id));
     header.addEventListener('contextmenu', e => showCtx(e, 'group', g.id));
-
+    
     const children = document.createElement('div');
     children.className = 'group-children' + (g.open ? ' open' : '');
-
+    
     (g.subs || []).forEach(s => {
-      const si = document.createElement('div');
-      si.className = 'sub-item';
-      si.innerHTML = `
-        <div>
-          <div class="sub-name">${s.name}</div>
-          <div class="sub-meta">${getSubMeta(s)}</div>
-        </div>
-        <span class="sub-arrow">›</span>
-      `;
+      const si = document.createElement('div'); si.className = 'sub-item';
+      si.innerHTML = `<div><div class="sub-name">\( {s.name}</div><div class="sub-meta"> \){getSubMeta(s)}</div></div><span class="sub-arrow">›</span>`;
       si.addEventListener('click', () => openMemo(g.id, s.id));
       si.addEventListener('contextmenu', e => showCtx(e, 'sub', s.id, g.id));
       children.appendChild(si);
     });
-
+    
     const addSub = document.createElement('div');
     addSub.className = 'sub-item';
     addSub.style.cssText = 'color:var(--primary);justify-content:center;';
     addSub.textContent = '+ 소그룹 추가';
     addSub.addEventListener('click', () => showAddSubModal(g.id));
     children.appendChild(addSub);
-
+    
     item.appendChild(header);
     item.appendChild(children);
     list.appendChild(item);
@@ -138,7 +125,7 @@ function render() {
 function getSubMeta(s) {
   if (!s.blocks || !s.blocks.length) return '비어있음';
   const parts = [];
-  if (s.blocks.some(b => b.type === 'text')) parts.push('텍스트');
+  if (s.blocks.some(b => b.type === 'text' && b.content)) parts.push('텍스트');
   if (s.blocks.some(b => b.type === 'freeText')) parts.push('자유텍스트');
   if (s.blocks.some(b => b.type === 'checklist')) parts.push('체크');
   if (s.blocks.some(b => b.type === 'photo')) parts.push('사진');
@@ -147,23 +134,17 @@ function getSubMeta(s) {
 
 function toggleGroup(gid) {
   const g = data.groups.find(x => x.id === gid);
-  if (g) {
-    g.open = !g.open;
-    saveData();
-    render();
-  }
+  if (g) { g.open = !g.open; saveData(); render(); }
 }
 
 function openMemo(gid, sid) {
   currentGroupId = gid;
   currentSubId = sid;
   const g = data.groups.find(x => x.id === gid);
-  const s = g ? g.subs.find(x => x.id === sid) : null;
-  if (s) {
-    currentMemo = JSON.parse(JSON.stringify(s));
-    renderMemoBody();
-    document.getElementById('memoView').classList.add('show');
-  }
+  const s = g.subs.find(x => x.id === sid);
+  currentMemo = JSON.parse(JSON.stringify(s));
+  renderMemoBody();
+  document.getElementById('memoView').classList.add('show');
 }
 
 function closeMemo() {
@@ -174,20 +155,13 @@ function closeMemo() {
 function saveMemo() {
   if (!currentMemo) return;
   const g = data.groups.find(x => x.id === currentGroupId);
-  if (g) {
-    const idx = g.subs.findIndex(x => x.id === currentSubId);
-    if (idx !== -1) g.subs[idx] = JSON.parse(JSON.stringify(currentMemo));
-  }
+  const idx = g.subs.findIndex(x => x.id === currentSubId);
+  g.subs[idx] = JSON.parse(JSON.stringify(currentMemo));
   saveData();
   render();
-
   const btn = document.getElementById('saveBtn');
-  btn.textContent = '✓';
-  btn.style.background = 'var(--green)';
-  setTimeout(() => {
-    btn.textContent = '저장';
-    btn.style.background = 'var(--primary)';
-  }, 1200);
+  btn.textContent = '✓'; btn.style.background = 'var(--green)';
+  setTimeout(() => { btn.textContent = '저장'; btn.style.background = 'var(--primary)'; }, 1200);
 }
 
 function renderMemoBody() {
@@ -196,6 +170,7 @@ function renderMemoBody() {
   (currentMemo.blocks || []).forEach(b => body.appendChild(createBlockEl(b)));
 }
 
+// ==================== 블록 생성 ====================
 function createBlockEl(block) {
   const wrap = document.createElement('div');
   wrap.className = 'block';
@@ -243,7 +218,7 @@ function createBlockEl(block) {
       img.style.transform = `translate(${t.x}px, \( {t.y}px) scale( \){t.scale}) rotate(${t.rotate}deg)`;
     });
 
-    img.addEventListener('touchend', () => { block.transform = t; });
+    img.addEventListener('touchend', () => block.transform = t);
 
   } else if (block.type === 'freeText') {
     const txt = document.createElement('div');
@@ -267,8 +242,7 @@ function createBlockEl(block) {
       } else if (e.touches.length === 2) {
         sdist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         sangle = Math.atan2(e.touches[1].clientY - e.touches[0].clientY, e.touches[1].clientX - e.touches[0].clientX) * 180 / Math.PI;
-        sscale = tscale;
-        srot = trot;
+        sscale = tscale; srot = trot;
       }
     });
 
@@ -298,7 +272,7 @@ function createBlockEl(block) {
   return wrap;
 }
 
-// 블록 추가
+// 블록 추가 함수들
 function addTextBlock() {
   if (!currentMemo) return;
   currentMemo.blocks.push({id: uid(), type: 'text', content: ''});
@@ -318,11 +292,9 @@ function addPhotoBlock() {
   if (!currentMemo) return;
   document.getElementById('photoInput').click();
 }
-function addVideoBlock() {
-  alert('동영상 기능은 준비 중입니다.');
-}
+function addVideoBlock() { /* 필요하면 추가 */ alert('동영상 기능은 추후 추가 예정입니다'); }
 
-// 사진 파일 처리
+// 사진 처리
 document.getElementById('photoInput').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file || !currentMemo) return;
@@ -340,7 +312,71 @@ document.getElementById('photoInput').addEventListener('change', e => {
   e.target.value = '';
 });
 
-// 모달 관련
+// 모달 & 컨텍스트 메뉴 (이름 변경 포함)
 function showModal(title, placeholder, callback) {
   document.getElementById('modalTitle').textContent = title;
-  document.getElementById('modalInput').value
+  document.getElementById('modalInput').value = '';
+  document.getElementById('modalInput').placeholder = placeholder;
+  modalCallback = callback;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+function showAddGroupModal() {
+  showModal('대그룹 추가', '대그룹 이름', name => {
+    data.groups.push({id: uid(), name, open: true, subs: []});
+    saveData(); render();
+  });
+}
+function showAddSubModal(gid) {
+  showModal('소그룹 추가', '소그룹 이름', name => {
+    const g = data.groups.find(x => x.id === gid);
+    if (g) {
+      g.subs.push({id: uid(), name, blocks: []});
+      saveData(); render();
+    }
+  });
+}
+
+function showCtx(e, type, id, parentId) {
+  e.preventDefault();
+  ctxType = type;
+  ctxTarget = {id, parentId};
+  // ctx 메뉴는 필요시 추가 가능 (지금은 간단히 이름 변경만)
+  showModal(type === 'group' ? '대그룹 이름 변경' : '소그룹 이름 변경', '새 이름', newName => {
+    if (type === 'group') {
+      const g = data.groups.find(x => x.id === id);
+      if (g) g.name = newName;
+    } else {
+      const g = data.groups.find(x => x.id === parentId);
+      const s = g && g.subs.find(x => x.id === id);
+      if (s) s.name = newName;
+    }
+    saveData(); render();
+  });
+}
+
+// 모달 HTML 추가 (코드 끝부분에 넣음)
+const modalHTML = `
+<div class="modal-overlay" id="modalOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:400;align-items:flex-end;">
+  <div class="modal" style="background:#fff;border-radius:16px 16px 0 0;padding:20px 16px;width:100%;">
+    <div class="modal-title" id="modalTitle" style="font-size:17px;font-weight:700;margin-bottom:12px;"></div>
+    <input class="modal-input" id="modalInput" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:16px;" />
+    <div style="display:flex;gap:8px;margin-top:16px;">
+      <button onclick="closeModal()" style="flex:1;padding:12px;background:#eee;border:none;border-radius:10px;">취소</button>
+      <button onclick="modalConfirm()" style="flex:1;padding:12px;background:var(--primary);color:white;border:none;border-radius:10px;">확인</button>
+    </div>
+  </div>
+</div>`;
+document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+window.modalConfirm = () => {
+  const val = document.getElementById('modalInput').value.trim();
+  if (val && modalCallback) modalCallback(val);
+  closeModal();
+};
+
+render();
+</script>
+</body>
+</html>
