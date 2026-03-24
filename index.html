@@ -228,8 +228,15 @@ function addChecklistBlock(){currentMemo.blocks.push({id:uid(),type:'checklist',
 function addPhotoBlock(){document.getElementById('photoInput').click();}
 function addVideoBlock(){currentMemo.blocks.push({id:uid(),type:'video',url:''}); renderMemoBody();}
 document.getElementById('photoInput').onchange=(e)=>{
-  const reader=new FileReader(); reader.onload=(ev)=>{currentMemo.blocks.push({id:uid(),type:'photo',photos:[ev.target.result],transform:{r:0,s:1,x:0,y:0}}); renderMemoBody();};
-  reader.readAsDataURL(e.target.files[0]); e.target.value='';
+  if(!e.target.files[0]) return;
+  const reader=new FileReader();
+  reader.onload=(ev)=>{
+    if(!currentMemo.blocks) currentMemo.blocks = [];
+    currentMemo.blocks.push({id:uid(),type:'photo',photos:[ev.target.result],transform:{r:0,s:1,x:0,y:0}});
+    renderMemoBody();
+  };
+  reader.readAsDataURL(e.target.files[0]);
+  e.target.value='';
 };
 function showAddGroupModal(){document.getElementById('modalOverlay').classList.add('show'); document.getElementById('modalConfirmBtn').onclick=()=>{const n=document.getElementById('modalInput').value; if(n){data.groups.push({id:uid(),name:n,open:true,subs:[]}); saveData(); render(); closeModal();}};}
 function showAddSubModal(gid){document.getElementById('modalOverlay').classList.add('show'); document.getElementById('modalConfirmBtn').onclick=()=>{const n=document.getElementById('modalInput').value; if(n){const g=data.groups.find(x=>x.id===gid); g.subs.push({id:uid(),name:n,blocks:[]}); saveData(); render(); closeModal();}};}
