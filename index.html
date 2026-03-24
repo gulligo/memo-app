@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>용용이 메모장</title>
+<title>용용이 메모장 복구본</title>
 <style>
 :root{--bg:#f5f5f7;--card:#fff;--border:#e5e5ea;--primary:#007aff;--text:#1c1c1e;--muted:#8e8e93;--red:#ff3b30;--green:#34c759;}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
@@ -12,140 +12,178 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .header-title{font-size:18px;font-weight:700;}
 .icon-btn{border:none;background:none;font-size:22px;color:var(--primary);padding:4px;cursor:pointer;}
 .main-view{padding:12px;}
-.group-item{background:var(--card);border-radius:12px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08);}
-.group-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;}
+.group-item{background:var(--card);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.group-header{display:flex;align-items:center;justify-content:space-between;padding:15px 16px;cursor:pointer;user-select:none;}
 .group-name{font-size:16px;font-weight:700;}
-.group-arrow{font-size:12px;color:var(--muted);transition:transform .2s;}
+.group-arrow{font-size:12px;transition:transform .2s;}
 .group-arrow.open{transform:rotate(90deg);}
 .group-children{display:none;border-top:1px solid var(--border);}
 .group-children.open{display:block;}
-.sub-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 12px 28px;border-bottom:1px solid var(--border);cursor:pointer;}
+.sub-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 12px 30px;border-bottom:1px solid var(--border);cursor:pointer;}
 .sub-name{font-size:15px;}
 .memo-view{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;flex-direction:column;}
 .memo-view.show{display:flex;}
-.memo-header{background:#fff;border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;}
-.back-btn{border:none;background:none;font-size:36px;color:var(--primary);cursor:pointer;}
-.save-btn{border:none;background:var(--primary);color:#fff;border-radius:8px;padding:7px 16px;font-size:15px;font-weight:700;}
-.memo-body{flex:1;overflow-y:auto;padding:12px;}
-.toolbar{background:#fff;border-top:1px solid var(--border);padding:8px 12px;display:flex;gap:8px;}
-.tool-btn{flex:1;border:none;background:var(--bg);border-radius:8px;padding:10px;font-size:13px;font-weight:600;}
-.block{margin-bottom:12px;position:relative;}
-.text-view{background:var(--card);border-radius:10px;padding:12px;font-size:15px;min-height:0;white-space:pre-wrap;word-break:break-word;}
-.text-view.empty{display:none;}
-.text-edit{display:none;width:100%;min-height:120px;border:2px solid var(--primary);border-radius:10px;padding:10px;font-size:15px;outline:none;}
-.text-edit.show{display:block;}
-.text-btns{display:none;position:absolute;top:-40px;right:0;gap:5px;z-index:30;}
-.text-btns.show{display:flex;}
-.t-btn{border:none;border-radius:6px;padding:6px 12px;color:#fff;font-size:12px;font-weight:700;}
-.photo-item{position:relative;margin-bottom:10px;}
-.photo-item img{width:100%;display:block;border-radius:8px;}
-.photo-del{display:none;position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.5);color:#fff;width:28px;height:28px;border-radius:50%;align-items:center;justify-content:center;}
-.photo-item.editing .photo-del{display:flex;}
-.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:400;align-items:flex-end;}
+.memo-header{background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
+.back-btn{border:none;background:none;font-size:30px;color:var(--primary);cursor:pointer;}
+.save-btn{border:none;background:var(--primary);color:#fff;border-radius:8px;padding:8px 18px;font-size:15px;font-weight:700;}
+.memo-body{flex:1;overflow-y:auto;padding:15px;}
+.toolbar{background:#fff;border-top:1px solid var(--border);padding:10px;display:flex;gap:10px;}
+.tool-btn{flex:1;border:none;background:var(--bg);border-radius:8px;padding:12px;font-size:14px;font-weight:600;}
+.block{margin-bottom:15px;position:relative;background:var(--card);border-radius:12px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
+.text-view{font-size:16px;line-height:1.5;white-space:pre-wrap;word-break:break-all;}
+.text-view.empty{color:var(--muted);font-style:italic;}
+.text-edit{display:none;width:100%;min-height:150px;border:2px solid var(--primary);border-radius:8px;padding:10px;font-size:16px;outline:none;margin-bottom:10px;}
+.edit-mode .text-view{display:none;}
+.edit-mode .text-edit{display:block;}
+.block-btns{display:none;justify-content:flex-end;gap:10px;margin-top:10px;}
+.edit-mode .block-btns{display:flex;}
+.b-btn{border:none;border-radius:6px;padding:6px 15px;color:#fff;font-size:13px;font-weight:700;}
+.photo-item img{width:100%;border-radius:8px;display:block;}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:500;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--card);border-radius:16px 16px 0 0;padding:20px 16px;width:100%;}
-.modal-input{width:100%;border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;}
-.modal-btns{display:flex;gap:8px;}
-.modal-btn{flex:1;border:none;border-radius:10px;padding:12px;font-weight:600;}
-.modal-btn.confirm{background:var(--primary);color:#fff;}
+.modal{background:#fff;border-radius:15px;padding:20px;width:100%;max-width:400px;}
+.modal-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:15px;font-size:16px;}
+.modal-btns{display:flex;gap:10px;}
+.m-btn{flex:1;border:none;border-radius:8px;padding:12px;font-weight:700;font-size:15px;}
 </style>
 </head>
 <body>
-<div class="header"><div class="header-title">용용이 메모장</div><button class="icon-btn" onclick="showAddGroup()">➕</button></div>
+<div class="header"><div class="header-title">용용이 메모장</div><button class="icon-btn" onclick="openModal('group')">➕</button></div>
 <div id="groupList" class="main-view"></div>
 <div class="memo-view" id="memoView">
   <div class="memo-header"><button class="back-btn" onclick="closeMemo()">‹</button><button class="save-btn" onclick="saveMemo()">저장</button></div>
   <div class="memo-body" id="memoBody"></div>
   <div class="toolbar">
-    <button class="tool-btn" onclick="addText()">📝 텍스트</button>
-    <button class="tool-btn" onclick="document.getElementById('pIn').click()">🖼 사진</button>
+    <button class="tool-btn" onclick="addBlock('text')">📝 글쓰기</button>
+    <button class="tool-btn" onclick="document.getElementById('fileIn').click()">🖼 사진</button>
   </div>
 </div>
 <div class="modal-overlay" id="modalOverlay">
-  <div class="modal"><input class="modal-input" id="modalInput" /><div class="modal-btns"><button class="modal-btn confirm" id="modalConfirm">확인</button><button class="modal-btn" onclick="closeModal()">취소</button></div></div>
+  <div class="modal">
+    <h3 id="modalTitle" style="margin-bottom:10px">추가</h3>
+    <input class="modal-input" id="modalInput" placeholder="이름을 입력하세요" />
+    <div class="modal-btns">
+      <button class="m-btn" style="background:var(--primary);color:#fff" id="modalConfirm">확인</button>
+      <button class="m-btn" style="background:var(--border)" onclick="closeModal()">취소</button>
+    </div>
+  </div>
 </div>
-<input type="file" id="pIn" accept="image/*" multiple style="display:none" />
+<input type="file" id="fileIn" accept="image/*" multiple style="display:none" />
 <script>
-const K='memo_data_v2';
-let data=JSON.parse(localStorage.getItem(K))||{groups:[]};
+const KEY='memo_app_v1';
+let data=JSON.parse(localStorage.getItem(KEY))||{groups:[]};
 let curG, curS, curM;
-function save(){localStorage.setItem(K,JSON.stringify(data));}
-function uid(){return Math.random().toString(36).slice(2,9);}
-function render(){
-  const l=document.getElementById('groupList'); l.innerHTML='';
+
+function saveStorage(){localStorage.setItem(KEY,JSON.stringify(data));}
+function uid(){return Math.random().toString(36).substr(2,9);}
+
+function renderMain(){
+  const list=document.getElementById('groupList'); list.innerHTML='';
   data.groups.forEach(g=>{
-    const div=document.createElement('div'); div.className='group-item';
-    div.innerHTML=`<div class="group-header"><div class="group-name">${g.name}</div><span class="group-arrow ${g.open?'open':''}">▶</span></div>
+    const gDiv=document.createElement('div'); gDiv.className='group-item';
+    gDiv.innerHTML=`<div class="group-header"><div class="group-name">${g.name}</div><span class="group-arrow ${g.open?'open':''}">▶</span></div>
     <div class="group-children ${g.open?'open':''}"></div>`;
-    div.querySelector('.group-header').onclick=()=>{g.open=!g.open; save(); render();};
-    const c=div.querySelector('.group-children');
+    gDiv.querySelector('.group-header').onclick=()=>{g.open=!g.open; saveStorage(); renderMain();};
+    const childBox=gDiv.querySelector('.group-children');
     (g.subs||[]).forEach(s=>{
-      const si=document.createElement('div'); si.className='sub-item'; si.innerHTML=`<div class="sub-name">${s.name}</div>`;
-      si.onclick=()=>openMemo(g.id,s.id); c.appendChild(si);
+      const sDiv=document.createElement('div'); sDiv.className='sub-item'; sDiv.innerHTML=`<div class="sub-name">${s.name}</div>`;
+      sDiv.onclick=(e)=>{e.stopPropagation(); openMemo(g.id, s.id);};
+      childBox.appendChild(sDiv);
     });
-    const add=document.createElement('div'); add.className='sub-item'; add.style.color='var(--primary)'; add.textContent='+ 소그룹 추가';
-    add.onclick=()=>showAddSub(g.id); c.appendChild(add); l.appendChild(div);
+    const addSub=document.createElement('div'); addSub.className='sub-item'; addSub.style.color='var(--primary)'; addSub.textContent='+ 소그룹 추가';
+    addSub.onclick=(e)=>{e.stopPropagation(); openModal('sub', g.id);};
+    childBox.appendChild(addSub); list.appendChild(gDiv);
   });
 }
-function openMemo(gid,sid){
-  curG=gid; curS=sid; const g=data.groups.find(x=>x.id===gid); const s=g.subs.find(x=>x.id===sid);
-  curM=JSON.parse(JSON.stringify(s)); renderMemo(); document.getElementById('memoView').classList.add('show');
+
+function openMemo(gid, sid){
+  curG=gid; curS=sid;
+  const g=data.groups.find(x=>x.id===gid);
+  const s=g.subs.find(x=>x.id===sid);
+  curM=JSON.parse(JSON.stringify(s));
+  if(!curM.blocks) curM.blocks=[];
+  renderMemo();
+  document.getElementById('memoView').classList.add('show');
 }
-function closeMemo(){document.getElementById('memoView').classList.remove('show');}
+
 function renderMemo(){
-  const b=document.getElementById('memoBody'); b.innerHTML='';
-  (curM.blocks||[]).forEach(blk=>{
-    const w=document.createElement('div'); w.className='block'; w.dataset.id=blk.id;
+  const body=document.getElementById('memoBody'); body.innerHTML='';
+  curM.blocks.forEach(blk=>{
+    const bDiv=document.createElement('div'); bDiv.className='block'; bDiv.id='b-'+blk.id;
     if(blk.type==='text'){
-      const v=document.createElement('div'); v.className='text-view'+(blk.content?'':' empty'); v.textContent=blk.content;
-      const e=document.createElement('textarea'); e.className='text-edit'; e.value=blk.content||'';
-      const btns=document.createElement('div'); btns.className='text-btns';
-      btns.innerHTML=`<button class="t-btn" style="background:var(--red)" onclick="delBlk('${blk.id}')">삭제</button>
-      <button class="t-btn" style="background:var(--green)" onclick="doneText('${blk.id}')">완료</button>`;
-      let t; v.ontouchstart=()=>{t=setTimeout(()=>{v.style.display='none'; e.classList.add('show'); btns.classList.add('show'); e.focus();},600);};
-      v.ontouchend=()=>clearTimeout(t);
-      if(!blk.content){v.style.display='none'; e.classList.add('show'); btns.classList.add('show');}
-      w.append(v,e,btns);
+      bDiv.innerHTML=`<div class="text-view">${blk.content||'내용을 입력하려면 길게 누르세요'}</div>
+      <textarea class="text-edit">${blk.content||''}</textarea>
+      <div class="block-btns">
+        <button class="b-btn" style="background:var(--red)" onclick="delBlk('${blk.id}')">삭제</button>
+        <button class="b-btn" style="background:var(--green)" onclick="doneBlk('${blk.id}')">완료</button>
+      </div>`;
     } else {
-      const pi=document.createElement('div'); pi.className='photo-item';
-      pi.innerHTML=`<img src="${blk.url}"><div class="photo-del" onclick="delBlk('${blk.id}')">✕</div>`;
-      let t; pi.ontouchstart=()=>{t=setTimeout(()=>pi.classList.toggle('editing'),600);};
-      pi.ontouchend=()=>clearTimeout(t); w.appendChild(pi);
+      bDiv.innerHTML=`<div class="photo-item"><img src="${blk.url}"></div>
+      <div class="block-btns">
+        <button class="b-btn" style="background:var(--red)" onclick="delBlk('${blk.id}')">삭제</button>
+        <button class="b-btn" style="background:var(--green)" onclick="closeEdit('${blk.id}')">닫기</button>
+      </div>`;
     }
-    b.appendChild(w);
+    let timer;
+    bDiv.ontouchstart=()=>{timer=setTimeout(()=>bDiv.classList.add('edit-mode'),600);};
+    bDiv.ontouchend=()=>clearTimeout(timer);
+    body.appendChild(bDiv);
   });
 }
-function addText(){curM.blocks.push({id:uid(),type:'text',content:''}); renderMemo();}
-function doneText(id){
-  const w=document.querySelector(`[data-id="${id}"]`); const txt=w.querySelector('textarea').value;
-  const b=curM.blocks.find(x=>x.id===id); b.content=txt; renderMemo();
+
+function addBlock(type){
+  const newBlk={id:uid(), type:type, content:''};
+  curM.blocks.push(newBlk); renderMemo();
+  if(type==='text'){
+    const el=document.getElementById('b-'+newBlk.id);
+    if(el) el.classList.add('edit-mode');
+  }
 }
+
+function doneBlk(id){
+  const el=document.getElementById('b-'+id);
+  const val=el.querySelector('.text-edit').value;
+  const blk=curM.blocks.find(x=>x.id===id);
+  blk.content=val; el.classList.remove('edit-mode'); renderMemo();
+}
+
+function closeEdit(id){document.getElementById('b-'+id).classList.remove('edit-mode');}
 function delBlk(id){curM.blocks=curM.blocks.filter(x=>x.id!==id); renderMemo();}
-document.getElementById('pIn').onchange=(e)=>{
-  const files=e.target.files; if(!files.length)return;
+
+document.getElementById('fileIn').onchange=(e)=>{
+  const files=e.target.files;
   Array.from(files).forEach(f=>{
-    const r=new FileReader(); r.onload=(ev)=>{curM.blocks.push({id:uid(),type:'photo',url:ev.target.result}); renderMemo();}; r.readAsDataURL(f);
+    const r=new FileReader();
+    r.onload=(ev)=>{curM.blocks.push({id:uid(), type:'photo', url:ev.target.result}); renderMemo();};
+    r.readAsDataURL(f);
   });
   e.target.value='';
 };
+
 function saveMemo(){
-  const g=data.groups.find(x=>x.id===curG); const idx=g.subs.findIndex(x=>x.id===curS);
-  g.subs[idx]=curM; save(); render(); closeMemo();
+  const g=data.groups.find(x=>x.id===curG);
+  const sIdx=g.subs.findIndex(x=>x.id===curS);
+  g.subs[sIdx]=curM; saveStorage(); renderMain();
+  const btn=document.querySelector('.save-btn');
+  btn.textContent='저장됨'; setTimeout(()=>btn.textContent='저장',1000);
 }
-function showAddGroup(){
-  const o=document.getElementById('modalOverlay'); o.classList.add('show');
+
+function closeMemo(){document.getElementById('memoView').classList.remove('show');}
+
+function openModal(type, targetId){
+  const m=document.getElementById('modalOverlay'); m.classList.add('show');
   document.getElementById('modalConfirm').onclick=()=>{
-    const n=document.getElementById('modalInput').value; if(n){data.groups.push({id:uid(),name:n,open:true,subs:[]}); save(); render(); closeModal();}
-  };
-}
-function showAddSub(gid){
-  const o=document.getElementById('modalOverlay'); o.classList.add('show');
-  document.getElementById('modalConfirm').onclick=()=>{
-    const n=document.getElementById('modalInput').value; if(n){const g=data.groups.find(x=>x.id===gid); g.subs.push({id:uid(),name:n,blocks:[]}); save(); render(); closeModal();}
+    const val=document.getElementById('modalInput').value;
+    if(val){
+      if(type==='group'){data.groups.push({id:uid(), name:val, open:true, subs:[]});}
+      else {const g=data.groups.find(x=>x.id===targetId); g.subs.push({id:uid(), name:val, blocks:[]});}
+      saveStorage(); renderMain(); closeModal();
+    }
   };
 }
 function closeModal(){document.getElementById('modalOverlay').classList.remove('show'); document.getElementById('modalInput').value='';}
-render();
+
+renderMain();
 </script>
 </body>
 </html>
