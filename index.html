@@ -258,6 +258,9 @@ function createFreeText(block){
     const touch=e.touches[0];
     const startX=touch.clientX;const startY=touch.clientY;
     const origLeft=parseInt(ft.style.left)||0;const origTop=parseInt(ft.style.top)||0;
+    const isSelected=ft.classList.contains('selected');
+const isEditing=ft.classList.contains('editing');
+if(isEditing)return;
     let moved=false;
     pressTimer=setTimeout(()=>{
       if(!moved){
@@ -269,7 +272,7 @@ function createFreeText(block){
       const t=e.touches[0];const dx=t.clientX-startX;const dy=t.clientY-startY;
       if(Math.abs(dx)>5||Math.abs(dy)>5){
         moved=true;clearTimeout(pressTimer);
-        if(!ft.classList.contains('editing')){
+        if(isSelected&&!ft.classList.contains('editing')){
           ft.classList.add('selected');
           const newLeft=Math.max(0,origLeft+dx);const newTop=Math.max(0,origTop+dy);
           ft.style.left=newLeft+'px';ft.style.top=newTop+'px';
