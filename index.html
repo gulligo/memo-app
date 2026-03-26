@@ -53,9 +53,9 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 .photo-del{display:none;position:absolute;top:6px;right:6px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:26px;height:26px;font-size:14px;align-items:center;justify-content:center;cursor:pointer;z-index:5;}
 .photo-item.editing .photo-del{display:flex;}
 .free-text{position:absolute;min-width:80px;max-width:70%;z-index:50;touch-action:none;}
-.free-text-bubble{background:none;border-radius:14px;padding:8px 12px;font-size:14px;color:var(--text);box-shadow:none;min-height:36px;word-break:break-word;white-space:pre-wrap;cursor:move;user-select:none;border:none
+.free-text-bubble{background:rgba(255,255,255,.92);border-radius:14px;padding:8px 12px;font-size:14px;color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.15);min-height:36px;word-break:break-word;white-space:pre-wrap;cursor:move;user-select:none;border:2px solid transparent;}
 .free-text.selected .free-text-bubble{border-color:var(--primary);}
-.free-text-edit{display:none;position:absolute;top:0;left:0;right:0;min-height:36px;border:2px solid var(--primary);background:rgba(255,255,255,.0);border-radius:14px;padding:8px 12px;font-size:14px;color:var(--text);outline:none;resize:none;font-family:inherit;z-index:51;}
+.free-text-edit{display:none;position:absolute;top:0;left:0;right:0;min-height:36px;border:2px solid var(--primary);background:rgba(255,255,255,.97);border-radius:14px;padding:8px 12px;font-size:14px;color:var(--text);outline:none;resize:none;font-family:inherit;z-index:51;}
 .free-text.editing .free-text-edit{display:block;}
 .free-text.editing .free-text-bubble{visibility:hidden;}
 .free-text-done{display:none;position:absolute;top:-28px;right:0;background:var(--green);color:#fff;border:none;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;cursor:pointer;z-index:52;}
@@ -122,6 +122,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
   <div class="ctx-item danger" id="ctxDelete">삭제</div>
 </div>
 <input type="file" id="photoInput" accept="image/*" multiple style="display:none" />
+
 <script>
 const KEY='memo_app_v1';
 function loadData(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):{groups:[]};}catch(e){return{groups:[]};}}
@@ -158,7 +159,7 @@ function render(){
   });
 }
 
-  function getSubMeta(s){
+function getSubMeta(s){
   if(!s.blocks||!s.blocks.length)return '비어있음';
   const parts=[];
   if(s.blocks.filter(b=>b.type==='freetext').length)parts.push('말풍선');
@@ -236,24 +237,13 @@ function createFreeText(block){
   const ft=document.createElement('div');
   ft.className='free-text';ft.dataset.bid=block.id;
   ft.style.left=(block.x||20)+'px';ft.style.top=(block.y||20)+'px';
-  if(block.bgOpacity===undefined)block.bgOpacity=0.92;
   const bubble=document.createElement('div');bubble.className='free-text-bubble';
-  bubble.style.background=`rgba(255,255,255,${block.bgOpacity})`;
   bubble.textContent=block.content||'탭해서 편집';
   const editArea=document.createElement('textarea');editArea.className='free-text-edit';
-  editArea.style.background='#fff';editArea.value=block.content||'';editArea.placeholder='텍스트 입력...';
+  editArea.value=block.content||'';editArea.placeholder='텍스트 입력...';
   editArea.addEventListener('input',()=>{
     block.content=editArea.value;bubble.textContent=editArea.value||'탭해서 편집';
     editArea.style.height='auto';editArea.style.height=editArea.scrollHeight+'px';
-  });
-  const toggleBgBtn=document.createElement('button');toggleBgBtn.className='free-text-done';
-  toggleBgBtn.style.right='90px';toggleBgBtn.style.background='var(--primary)';
-  toggleBgBtn.textContent=block.bgOpacity===0?'배경:투명':'배경:흰색';
-  toggleBgBtn.addEventListener('click',e=>{
-    e.stopPropagation();
-    if(block.bgOpacity===0){block.bgOpacity=0.92;toggleBgBtn.textContent='배경:흰색';}
-    else{block.bgOpacity=0;toggleBgBtn.textContent='배경:투명';}
-    bubble.style.background=`rgba(255,255,255,${block.bgOpacity})`;
   });
   const doneBtn=document.createElement('button');doneBtn.className='free-text-done';doneBtn.textContent='완료';
   doneBtn.addEventListener('click',e=>{
@@ -266,10 +256,9 @@ function createFreeText(block){
   });
   let pressTimer=null;
   ft.addEventListener('touchstart',e=>{
-    const touch=e.touches[0];const startX=touch.clientX;const startY=touch.clientY;
+    const touch=e.touches[0];
+    const startX=touch.clientX;const startY=touch.clientY;
     const origLeft=parseInt(ft.style.left)||0;const origTop=parseInt(ft.style.top)||0;
-    const isSelected=ft.classList.contains('selected');const isEditing=ft.classList.contains('editing');
-    if(isEditing)return;
     let moved=false;
     pressTimer=setTimeout(()=>{
       if(!moved){
@@ -281,7 +270,7 @@ function createFreeText(block){
       const t=e.touches[0];const dx=t.clientX-startX;const dy=t.clientY-startY;
       if(Math.abs(dx)>5||Math.abs(dy)>5){
         moved=true;clearTimeout(pressTimer);
-        if(isSelected&&!ft.classList.contains('editing')){
+        if(!ft.classList.contains('editing')){
           ft.classList.add('selected');
           const newLeft=Math.max(0,origLeft+dx);const newTop=Math.max(0,origTop+dy);
           ft.style.left=newLeft+'px';ft.style.top=newTop+'px';
@@ -300,7 +289,7 @@ function createFreeText(block){
     };
     document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onEnd);
   },{passive:true});
-  ft.appendChild(bubble);ft.appendChild(editArea);ft.appendChild(doneBtn);ft.appendChild(delBtn);ft.appendChild(toggleBgBtn);
+  ft.appendChild(bubble);ft.appendChild(editArea);ft.appendChild(doneBtn);ft.appendChild(delBtn);
   return ft;
 }
 
@@ -405,7 +394,7 @@ function addFreeText(){
   if(!currentMemo)return;
   const body=document.getElementById('memoBody');
   const scrollTop=body.scrollTop;
-  const block={id:uid(),type:'freetext',content:'',x:20,y:scrollTop+20,bgOpacity:0.92};
+  const block={id:uid(),type:'freetext',content:'',x:20,y:scrollTop+20};
   currentMemo.blocks.push(block);
   const ft=createFreeText(block);
   body.appendChild(ft);
