@@ -248,7 +248,7 @@ function renderMemoBody(){
 
 function createFreeText(block){
   const ft=document.createElement('div');
-  ft.dataset.bid = block.id;
+  ft.dataset.bid = block.id; // 이 줄이 있어야 "이 말풍선이 내 거다"라고 인식함
   ft.className='free-text'+(block.bgType==='transparent'?' transparent':'');
   ft.style.left=(block.x||20)+'px';ft.style.top=(block.y||20)+'px';
   const bubble=document.createElement('div');bubble.className='free-text-bubble';
@@ -286,7 +286,8 @@ function createFreeText(block){
         moved=true;clearTimeout(pressTimer);
         if(!ft.classList.contains('editing')){
           ft.classList.add('selected');
-          const newLeft=Math.max(0,origLeft+dx);const newTop=Math.max(0,origTop+dy);
+          const newLeft=Math.max(0,origLeft+dx);const newTop=Math.max(0,origTop+dy);block.x = newLeft; 
+block.y = newTop;
           ft.style.left=newLeft+'px';ft.style.top=newTop+'px';
 const b=currentMemo.blocks.find(x=>x.id===block.id);
 if(b){b.x=newLeft;b.y=newTop;}
