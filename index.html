@@ -207,26 +207,38 @@ function saveMemo(){
   setTimeout(()=>{btn.textContent='저장';btn.style.background='var(--primary)';},1200);
 }
 
-function collectMemoBlocks(){
-  const nb=[];
-  document.getElementById('memoBody').querySelectorAll('.free-text[data-bid]').forEach(ft=>{
-    const block=currentMemo.blocks.find(x=>x.id===ft.dataset.bid);
-    if(!block)return;
-    const edit=ft.querySelector('.free-text-edit');
-    if(edit)block.content=edit.value;
-    block.x=parseFloat(ft.style.left)||0;
-    block.y=parseFloat(ft.style.top)||0;
-    nb.push(block);
-});
-  document.getElementById('memoBody').querySelectorAll('.free-text[data-bid]').forEach(ft=>{
-    const block=currentMemo.blocks.find(x=>x.id===ft.dataset.bid);
-    if(!block)return;
-    const edit=ft.querySelector('.free-text-edit');
-    if(edit)block.content=edit.value;
-    block.x=parseInt(ft.style.left)||0;
-    block.y=parseInt(ft.style.top)||0;
-    nb.push(block);
+function collectMemoBlocks() {
+  const body = document.getElementById('memoBody');
+  const newBlocks = [];
+  body.querySelectorAll('.block[data-bid]').forEach(el => {
+    const block = currentMemo.blocks.find(x => x.id === el.dataset.bid);
+    if (block) {
+      if (block.type === 'checklist') {
+        const items = [];
+        el.querySelectorAll('.check-item').forEach(ci => {
+          items.push({
+            text: ci.querySelector('.check-item-text').value,
+            done: ci.querySelector('input[type="checkbox"]').checked
+          });
+        });
+        block.items = items;
+      }
+      newBlocks.push(block);
+    }
   });
+  body.querySelectorAll('.free-text[data-bid]').forEach(ft => {
+    const block = currentMemo.blocks.find(x => x.id === ft.dataset.bid);
+    if (block) {
+      const edit = ft.querySelector('.free-text-edit');
+      if (edit) block.content = edit.value;
+      block.x = parseFloat(ft.style.left) || 0;
+      block.y = parseFloat(ft.style.top) || 0;
+      newBlocks.push(block);
+    }
+  });
+  currentMemo.blocks = newBlocks;
+}
+
   currentMemo.blocks=nb;
 }
 
