@@ -210,6 +210,7 @@ function saveMemo(){
 function collectMemoBlocks() {
   const body = document.getElementById('memoBody');
   const newBlocks = [];
+  
   body.querySelectorAll('.block[data-bid]').forEach(el => {
     const block = currentMemo.blocks.find(x => x.id === el.dataset.bid);
     if (block) {
@@ -226,18 +227,19 @@ function collectMemoBlocks() {
       newBlocks.push(block);
     }
   });
+
   body.querySelectorAll('.free-text[data-bid]').forEach(ft => {
     const block = currentMemo.blocks.find(x => x.id === ft.dataset.bid);
     if (block) {
       const edit = ft.querySelector('.free-text-edit');
       if (edit) block.content = edit.value;
-      block.x = parseFloat(ft.style.left) || 0;
-      block.y = parseFloat(ft.style.top) || 0;
       newBlocks.push(block);
     }
   });
+  
   currentMemo.blocks = newBlocks;
 }
+
 
 function renderMemoBody(){
   const body=document.getElementById('memoBody');
