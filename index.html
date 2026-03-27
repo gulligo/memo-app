@@ -248,6 +248,7 @@ function renderMemoBody(){
 
 function createFreeText(block){
   const ft=document.createElement('div');
+  ft.dataset.bid = block.id;
   ft.className='free-text'+(block.bgType==='transparent'?' transparent':'');
   ft.style.left=(block.x||20)+'px';ft.style.top=(block.y||20)+'px';
   const bubble=document.createElement('div');bubble.className='free-text-bubble';
