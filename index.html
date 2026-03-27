@@ -281,6 +281,7 @@ function createFreeText(block){
       }
     },600);
     const onMove=e=>{
+      if(!ft.classList.contains('selected')) return; //
       const t=e.touches[0];const dx=t.clientX-startX;const dy=t.clientY-startY;
       if(Math.abs(dx)>5||Math.abs(dy)>5){
         moved=true;clearTimeout(pressTimer);
