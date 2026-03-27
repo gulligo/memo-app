@@ -278,7 +278,8 @@ function createFreeText(block){
           ft.classList.add('selected');
           const newLeft=Math.max(0,origLeft+dx);const newTop=Math.max(0,origTop+dy);
           ft.style.left=newLeft+'px';ft.style.top=newTop+'px';
-          block.x=newLeft;block.y=newTop;
+const b=currentMemo.blocks.find(x=>x.id===block.id);
+if(b){b.x=newLeft;b.y=newTop;}
         }
       }
       e.preventDefault();
@@ -398,7 +399,9 @@ function addFreeText(bgType){
   if(!currentMemo)return;
   const body=document.getElementById('memoBody');
   const scrollTop=body.scrollTop;
-  const block={id:uid(),type:'freetext',content:'',x:20,y:scrollTop+20,bgType:bgType||'white'};
+  const bodyRect=body.getBoundingClientRect();
+  const centerY=scrollTop+(bodyRect.height/2);
+  const block={id:uid(),type:'freetext',content:'',x:20,y:centerY,...};
   currentMemo.blocks.push(block);
   const ft=createFreeText(block);
   body.appendChild(ft);
