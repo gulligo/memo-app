@@ -410,7 +410,7 @@ function addFreeText(bgType){
   const scrollTop=body.scrollTop;
   const bodyRect=body.getBoundingClientRect();
   const centerY=scrollTop+(bodyRect.height/2);
-  const block={id:uid(),type:'freetext',content:'',x:20,y:centerY,...};
+  const block={id:uid(),type:'freetext',content:'',x:20,y:centerY,bgType:bgType};
   currentMemo.blocks.push(block);
   const ft=createFreeText(block);
   body.appendChild(ft);
