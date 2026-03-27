@@ -433,13 +433,60 @@ function addVideoBlock(){if(!currentMemo)return;currentMemo.blocks.push({id:uid(
 
 function getYoutubeEmbedUrl(url){const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/))([a-zA-Z0-9_-]{11})/);return m?`https://www.youtube.com/embed/${m[1]}`:null;}
 
-document.getElementById('photoInput').addEventListener('change',function(e){
-  const bid=this.dataset.bid;const files=Array.from(e.target.files);if(!files.length)return;
-  if(bid==='split'){const reader=new FileReader();reader.onload=ev=>{currentMemo.blocks.push({id:uid(),type:'split',photo:ev.target.result,text:''});renderMemoBody();};reader.readAsDataURL(files[0]);this.value='';return;}
-  let loaded=0;
-  files.forEach(file=>{const reader=new FileReader();reader.onload=ev=>{const block={id:uid(),type:'photo',photos:[ev.target.result],transforms:[{r:0,s:1,x:0,y:0}]};currentMemo.blocks.push(block);loaded++;if(loaded===files.length)renderMemoBody();};reader.readAsDataURL(file);});
-  this.value='';
+document.getElementById('photoInput').addEventListener('change', function(e) {
+  const bid = this.dataset.bid;
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const max_size = 1000; 
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > max_size) {
+            height *= max_size / width;
+            width = max_size;
+          }
+        } else {
+          if (height > max_size) {
+            width *= max_size / height;
+            height = max_size;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // JPEG로 강제 변환 및 압축 (용량 문제 해결)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+
+        if (bid === 'split') {
+          currentMemo.blocks.push({ id: uid(), type: 'split', photo: dataUrl, text: '' });
+        } else {
+          // 사진 블록 생성 및 데이터 삽입
+          currentMemo.blocks.push({ 
+            id: uid(), 
+            type: 'photo', 
+            photos: [dataUrl], 
+            transforms: [{ r: 0, s: 1, x: 0, y: 0 }] 
+          });
+        }
+        renderMemoBody();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  this.value = '';
 });
+
 
 function showModal(title,placeholder,callback){document.getElementById('modalTitle').textContent=title;document.getElementById('modalInput').value='';document.getElementById('modalInput').placeholder=placeholder;modalCallback=callback;document.getElementById('modalOverlay').classList.add('show');setTimeout(()=>document.getElementById('modalInput').focus(),100);}
 function closeModal(){document.getElementById('modalOverlay').classList.remove('show');}
