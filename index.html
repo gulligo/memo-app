@@ -90,12 +90,14 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 </head>
 <body>
 <div class="header">
+  <div class="header">
   <div class="header-title">용용이 메모장</div>
   <div style="display:flex;gap:8px;">
     <button class="icon-btn" onclick="backupData()">💾</button>
     <button class="icon-btn" onclick="restoreData()">📂</button>
     <button class="icon-btn" onclick="showAddGroupModal()">➕</button>
   </div>
+</div> 
 <div class="main-view"><div id="groupList"></div></div>
 <div class="memo-view" id="memoView">
   <div class="memo-header">
@@ -104,6 +106,7 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
   </div>
   <div class="memo-body" id="memoBody"></div>
   <div class="toolbar">
+    
     <button class="tool-btn" onclick="addFreeText('white')">💬 말풍선</button>
     <button class="tool-btn" onclick="addFreeText('transparent')">🔤 투명말풍선</button>
     <button class="tool-btn" onclick="addChecklistBlock()">☑️ 체크</button>
