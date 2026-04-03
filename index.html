@@ -91,8 +91,12 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 <body>
 <div class="header">
   <div class="header-title">용용이 메모장</div>
-  <button class="icon-btn" onclick="showAddGroupModal()">➕</button>
-</div>
+  <div class="header-title">용용이 메모장</div>
+  <div style="display:flex;gap:8px;">
+    <button class="icon-btn" onclick="backupData()">💾</button>
+    <button class="icon-btn" onclick="restoreData()">📂</button>
+    <button class="icon-btn" onclick="showAddGroupModal()">➕</button>
+  </div>
 <div class="main-view"><div id="groupList"></div></div>
 <div class="memo-view" id="memoView">
   <div class="memo-header">
@@ -511,7 +515,31 @@ document.getElementById('ctxDelete').addEventListener('click',()=>{
   else{const g=data.groups.find(x=>x.id===ctxTarget.parentId);if(g)g.subs=g.subs.filter(x=>x.id!==ctxTarget.id);}
   saveData();render();
 });
-
+function backupData(){
+  const json=JSON.stringify(data);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='memo_backup.json';a.click();
+  URL.revokeObjectURL(url);
+}
+function restoreData(){
+  const input=document.createElement('input');
+  input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      try{
+        data=JSON.parse(ev.target.result);
+        saveData();render();
+        alert('복구 완료!');
+      }catch(e){alert('파일 오류!');}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
 document.getElementById('memoBody').addEventListener('click',e=>{
   if(e.target===document.getElementById('memoBody')){
     document.querySelectorAll('.free-text').forEach(el=>{el.classList.remove('selected');el.classList.remove('editing');});
