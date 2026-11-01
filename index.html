@@ -95,12 +95,23 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 #gv{background:#0b1015;color:#fff;padding:0}#gv .m{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
 #gv .m img,#gv .m video{max-width:100%;max-height:100%}#gv .bar{display:flex;gap:8px;padding:10px;align-items:center}
 #map{height:55vh;border-radius:10px;margin-bottom:8px}.fbtn{display:inline-block;background:var(--primary);color:#fff;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer}
+#galv{padding:0;flex-direction:row}
+#galv .side{width:92px;flex:none;background:#fff;border-right:1px solid var(--border);overflow-y:auto}
+#galv .side div{padding:14px 8px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);word-break:break-all}
+#galv .side div.on{background:var(--primary);color:#fff}
+#galv .main{flex:1;min-width:0;overflow-y:auto}
+#galv .top{position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--border);padding:8px;display:flex;gap:8px;align-items:center}
+#galv .dh{padding:10px 8px 4px;font-size:12px;font-weight:700;color:var(--muted)}
+#galv .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:1px}
+@media(min-width:700px){#galv .pg{grid-template-columns:repeat(6,1fr)}}
+#galv .pg div{position:relative;aspect-ratio:1;background:#d8dde2}#galv .pg img{width:100%;height:100%;object-fit:cover}#galv .pg b{position:absolute;right:4px;bottom:2px;color:#fff}
 </style>
 </head>
 <body>
 <div class="header">
 <div class="header-title">용용이 메모장</div>
 <div style="display:flex;gap:8px;">
+<button class="icon-btn" onclick="openGal()">🖼</button>
 <button class="icon-btn" onclick="openMap()">🗺</button>
 <button class="icon-btn" onclick="openSteps()">👣</button>
 <button class="icon-btn" onclick="backupData()">💾</button>
@@ -144,6 +155,10 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 <div class="ctx-item danger" id="ctxDelete">삭제</div>
 </div>
 
+<div class="ov" id="galv">
+<div class="side" id="gside"></div>
+<div class="main"><div class="top"><button class="modal-btn cancel" style="flex:none;padding:8px 12px" onclick="$('#galv').classList.remove('show')">닫기</button><span id="gtt" style="flex:1;font-weight:700"></span><label class="fbtn">＋ 올리기<input type="file" accept="image/*,video/*" multiple hidden onchange="upP([...this.files],$('#gst'));this.value=''" /></label></div><small id="gst" style="padding:4px 8px;color:var(--muted)"></small><div id="gbody"></div></div>
+</div>
 <div class="ov" id="login">
 <div class="modal-title">로그인</div>
 <input class="modal-input" id="em" type="email" placeholder="이메일" />
@@ -908,6 +923,7 @@ document.getElementById('ctxAddSub').addEventListener('click',()=>showAddSubModa
 
 document.getElementById('ctxDelete').addEventListener('click',()=>{
 if(ctxType==='group'){
+const gg=data.groups.find(x=>x.id===ctxTarget.id);if(gg&&gg.photos&&gg.photos.length&&sb)B().remove(gg.photos.flatMap(i=>[i.p,i.t]));
 data.groups=data.groups.filter(x=>x.id!==ctxTarget.id);
 }else{
 const g=data.groups.find(x=>x.id===ctxTarget.parentId);
@@ -1014,12 +1030,14 @@ return{id,p,t:tp,k:v?'v':'p',lat,lng}}
 
 /* ===== 뷰어 ===== */
 let gi=[],gx=0,sx0=0;
-async function viewG(bid,n){gi=currentMemo.blocks.find(x=>x.id===bid).items;gx=n;$('#gv').classList.add('show');await showG()}
+let gOwner='memo';
+async function viewG(bid,n){gOwner='memo';gi=currentMemo.blocks.find(x=>x.id===bid).items;gx=n;$('#gv').classList.add('show');await showG()}
 async function showG(){const it=gi[gx];await sign([it.p]);const u=urls[it.p];
 $('#gm').innerHTML=it.k==='v'?`<video src="${u}" controls autoplay playsinline></video>`:`<img src="${u}">`;$('#gc').textContent=`${gx+1} / ${gi.length}`}
 const mvG=d=>{gx=(gx+d+gi.length)%gi.length;showG()};
 function closeG(){$('#gv').classList.remove('show');$('#gm').innerHTML=''}
-async function delG(){if(!confirm('이 사진을 삭제할까요?'))return;const it=gi[gx];await B().remove([it.p,it.t]);gi.splice(gx,1);closeG();saveMemo();renderMemoBody()}
+async function delG(){if(!confirm('이 사진을 삭제할까요?'))return;const it=gi[gx];await B().remove([it.p,it.t]);gi.splice(gx,1);closeG();
+if(gOwner==='grp'){const g=data.groups.find(x=>x.id===galG);g.photos=g.photos.filter(x=>x.id!==it.id);saveData();renderGal()}else{saveMemo();renderMemoBody()}}
 $('#gm').addEventListener('touchstart',e=>sx0=e.touches[0].clientX);
 $('#gm').addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx0;if(Math.abs(d)>50)mvG(d<0?1:-1)});
 
@@ -1030,7 +1048,7 @@ const km=a=>a.reduce((s,p,i)=>{if(!i)return 0;const q=a[i-1],r=Math.PI/180,x=Mat
 async function openMap(){if(!(await sess()))return;$('#mapv').classList.add('show');
 if(!map){map=L.map('map').setView([36.64,127.49],9);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map)}
 setTimeout(()=>map.invalidateSize(),80);mk.forEach(m=>m.remove());mk=[];
-const its=data.groups.flatMap(g=>(g.subs||[]).flatMap(s=>(s.blocks||[]).filter(b=>b.type==='gallery').flatMap(b=>b.items))).filter(i=>i.lat!=null);
+const its=[...data.groups.flatMap(g=>g.photos||[]),...data.groups.flatMap(g=>(g.subs||[]).flatMap(s=>(s.blocks||[]).filter(b=>b.type==='gallery').flatMap(b=>b.items)))].filter(i=>i.lat!=null);
 await sign(its.map(i=>i.t));its.forEach(i=>mk.push(L.marker([i.lat,i.lng]).addTo(map).bindPopup(`<img src="${urls[i.t]}" width="120">`)));
 if(mk.length)map.fitBounds(L.featureGroup(mk).getBounds().pad(.2));loadTrk()}
 async function loadTrk(){const{data:t}=await sb.from('tracks').select().order('created_at',{ascending:false});
@@ -1048,6 +1066,24 @@ async function openSteps(){if(!(await sess()))return;$('#sd').value=new Date().t
 async function saveStep(){const n=+$('#sn').value;if(!$('#sd').value||isNaN(n))return;await sb.from('steps').upsert({day:$('#sd').value,steps:n});$('#sn').value='';loadSteps()}
 async function loadSteps(){const{data:r}=await sb.from('steps').select().order('day',{ascending:false}).limit(14);const mx=Math.max(1,...(r||[]).map(s=>s.steps));
 $('#sl').innerHTML=(r||[]).map(s=>`<div style="margin:8px 0"><small style="color:var(--muted)">${s.day} · ${s.steps.toLocaleString()}걸음</small><div style="height:14px;border-radius:4px;background:var(--primary);width:${s.steps/mx*100}%"></div></div>`).join('')||'<small>기록이 없습니다.</small>'}
+
+/* ===== 삼성 갤러리 스타일: 왼쪽 대그룹 / 오른쪽 사진 ===== */
+let galG=null,galList=[];
+async function openGal(){if(!(await sess()))return;$('#galv').classList.add('show');if(!data.groups.find(x=>x.id===galG)&&data.groups[0])galG=data.groups[0].id;renderGal()}
+function pickG(id){galG=id;renderGal()}
+async function renderGal(){
+$('#gside').innerHTML=data.groups.map(g=>`<div class="${g.id===galG?'on':''}" onclick="pickG('${g.id}')">${esc(g.name)}<br><small>${(g.photos||[]).length}장</small></div>`).join('')||'<div>대그룹을 먼저 만들어 주세요</div>';
+const g=data.groups.find(x=>x.id===galG);if(!g){$('#gtt').textContent='';$('#gbody').innerHTML='';return}
+$('#gtt').textContent=g.name;g.photos=g.photos||[];
+await sign(g.photos.map(i=>i.t));
+galList=[...g.photos].sort((a,b)=>(b.at||0)-(a.at||0));const days={};
+galList.forEach(i=>{const d=new Date(i.at||0),k=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;(days[k]=days[k]||[]).push(i)});
+$('#gbody').innerHTML=Object.keys(days).map(k=>`<div class="dh">${k}</div><div class="pg">${days[k].map(i=>`<div onclick="viewP('${i.id}')"><img src="${urls[i.t]||''}" loading="lazy">${i.k==='v'?'<b>▶</b>':''}</div>`).join('')}</div>`).join('')||'<div class="dh">사진이 없습니다. ＋ 올리기를 눌러 주세요.</div>'}
+async function viewP(id){gOwner='grp';gi=galList;gx=galList.findIndex(x=>x.id===id);$('#gv').classList.add('show');await showG()}
+async function upP(fs,st){if(!(await sess()))return;const g=data.groups.find(x=>x.id===galG);if(!g)return alert('왼쪽에서 대그룹을 먼저 선택해 주세요.');g.photos=g.photos||[];let n=0;
+for(const f of fs){st.textContent=`올리는 중 ${++n}/${fs.length} (영상은 시간이 걸립니다. 화면을 켜 두세요)`;
+try{const it=await one(f,g.id);let at=f.lastModified;if(!f.type.startsWith('video')){const ex=await exifr.parse(f,['DateTimeOriginal']).catch(()=>null);if(ex&&ex.DateTimeOriginal)at=+ex.DateTimeOriginal}it.at=at;g.photos.push(it);saveData()}catch(e){alert(f.name+' 실패: '+e.message)}}
+st.textContent='';renderGal()}
 </script>
 </body>
 </html>
