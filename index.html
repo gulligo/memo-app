@@ -158,21 +158,21 @@ body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:v
 
 <div class="ov" id="galv">
 <div class="side" id="gside"></div>
-<div class="main"><div class="top"><button class="modal-btn cancel" style="flex:none;padding:8px 12px" onclick="$('#galv').classList.remove('show')">닫기</button><span id="gtt" style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:700"></span><button class="modal-btn cancel" id="gmode" style="flex:none;padding:8px 10px" onclick="togM()"></button><label class="fbtn">＋ 올리기<input type="file" accept="image/*,video/*" multiple hidden onchange="upP([...this.files],$('#gst'));this.value=''" /></label></div><small id="gst" style="padding:4px 8px;color:var(--muted)"></small><div id="gbody"></div></div>
+<div class="main"><div class="top"><button class="modal-btn cancel" style="flex:none;padding:8px 12px" onclick="closeOv('galv')">닫기</button><span id="gtt" style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-weight:700"></span><button class="modal-btn cancel" id="gmode" style="flex:none;padding:8px 10px" onclick="togM()"></button><label class="fbtn">＋ 올리기<input type="file" accept="image/*,video/*" multiple hidden onchange="upP([...this.files],$('#gst'));this.value=''" /></label></div><small id="gst" style="padding:4px 8px;color:var(--muted)"></small><div id="gbody"></div></div>
 </div>
 <div class="ov" id="login">
 <div class="modal-title">로그인</div>
 <input class="modal-input" id="em" type="email" placeholder="이메일" />
 <input class="modal-input" id="pw" type="password" placeholder="비밀번호" />
-<div class="modal-btns"><button class="modal-btn cancel" onclick="$('#login').classList.remove('show')">건너뛰기</button><button class="modal-btn confirm" onclick="doLogin()">로그인</button></div>
+<div class="modal-btns"><button class="modal-btn cancel" onclick="closeOv('login')">건너뛰기</button><button class="modal-btn confirm" onclick="doLogin()">로그인</button></div>
 </div>
 <div class="ov" id="mapv">
-<div class="modal-btns" style="flex:none;margin-bottom:8px"><button class="modal-btn cancel" onclick="$('#mapv').classList.remove('show')">닫기</button>
+<div class="modal-btns" style="flex:none;margin-bottom:8px"><button class="modal-btn cancel" onclick="closeOv('mapv')">닫기</button>
 <label class="modal-btn confirm" style="text-align:center">GPX 올리기<input type="file" accept=".gpx" hidden onchange="addGpx(this.files[0]);this.value=''" /></label></div>
 <div id="map"></div><div id="trk"></div>
 </div>
 <div class="ov" id="stv">
-<button class="modal-btn cancel" style="flex:none;margin-bottom:8px" onclick="$('#stv').classList.remove('show')">닫기</button>
+<button class="modal-btn cancel" style="flex:none;margin-bottom:8px" onclick="closeOv('stv')">닫기</button>
 <div style="display:flex;gap:8px;margin-bottom:8px"><input class="modal-input" id="sd" type="date" style="margin:0" /><input class="modal-input" id="sn" type="number" placeholder="걸음 수" style="margin:0" /><button class="modal-btn confirm" style="flex:none" onclick="saveStep()">저장</button></div>
 <div id="sl"></div>
 </div>
@@ -378,13 +378,10 @@ const g=data.groups.find(x=>x.id===gid);
 const s=g.subs.find(x=>x.id===sid);
 currentMemo=JSON.parse(JSON.stringify(s));
 renderMemoBody();
-document.getElementById('memoView').classList.add('show');
+openOv('memoView',()=>{currentMemo=null});
 }
 
-function closeMemo(){
-document.getElementById('memoView').classList.remove('show');
-currentMemo=null;
-}
+function closeMemo(){closeOv('memoView')}
 
 function saveMemo(){
 if(!currentMemo)return;
@@ -852,13 +849,11 @@ document.getElementById('modalTitle').textContent=title;
 document.getElementById('modalInput').value='';
 document.getElementById('modalInput').placeholder=placeholder;
 modalCallback=callback;
-document.getElementById('modalOverlay').classList.add('show');
+openOv('modalOverlay');
 setTimeout(()=>document.getElementById('modalInput').focus(),100);
 }
 
-function closeModal(){
-document.getElementById('modalOverlay').classList.remove('show');
-}
+function closeModal(){closeOv('modalOverlay')}
 
 document.getElementById('modalConfirmBtn').addEventListener('click',()=>{
 const val=document.getElementById('modalInput').value.trim();
@@ -984,13 +979,13 @@ const $=s=>document.querySelector(s), B=()=>sb.storage.from('media');
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let pushT,urls={};
 const has=async()=>!!(sb&&(await sb.auth.getSession()).data.session);
-async function sess(){if(await has())return true;if(!sb){alert('index.html의 SB_URL, SB_KEY를 먼저 입력해 주세요.');return false}$('#login').classList.add('show');return false}
+async function sess(){if(await has())return true;if(!sb){alert('index.html의 SB_URL, SB_KEY를 먼저 입력해 주세요.');return false}openOv('login');return false}
 async function doLogin(){const{error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});
-if(error)return alert('로그인 실패: '+error.message);$('#login').classList.remove('show');pull()}
+if(error)return alert('로그인 실패: '+error.message);closeOv('login');pull()}
 async function push(){if(await has())await sb.from('memo_data').upsert({id:'main',json:data,ts:data.ts||0})}
 async function pull(){if(!sb||!(await sess()))return;const{data:r}=await sb.from('memo_data').select().eq('id','main').maybeSingle();
 if(r&&r.ts>(data.ts||0)){data=r.json;putLocal();render()}else if(!r||r.ts<(data.ts||0))push()}
-async function sign(p){p=p.filter(Boolean);if(!p.length)return;const{data:d}=await B().createSignedUrls(p,7200);(d||[]).forEach(x=>urls[x.path]=x.signedUrl)}
+async function sign(p){if(Date.now()-(window.sat||0)>6e6){urls={};window.sat=Date.now()}p=[...new Set(p.filter(x=>x&&!urls[x]))];if(!p.length)return;const{data:d}=await B().createSignedUrls(p,7200);(d||[]).forEach(x=>urls[x.path]=x.signedUrl)}
 
 /* ===== 갤러리 블록 ===== */
 function addGallery(){if(!currentMemo)return;currentMemo.blocks.push({id:uid(),type:'gallery',items:[]});renderMemoBody()}
@@ -1032,11 +1027,16 @@ return{id,p,t:tp,k:v?'v':'p',lat,lng}}
 /* ===== 뷰어 ===== */
 let gi=[],gx=0,sx0=0;
 let gOwner='memo';
-async function viewG(bid,n){gOwner='memo';gi=currentMemo.blocks.find(x=>x.id===bid).items;gx=n;$('#gv').classList.add('show');await showG()}
-async function showG(){const it=gi[gx];await sign([it.p]);const u=urls[it.p];
-$('#gm').innerHTML=it.k==='v'?`<video src="${u}" controls autoplay playsinline></video>`:`<img src="${u}">`;$('#gc').textContent=`${gx+1} / ${gi.length}`}
+async function viewG(bid,n){gOwner='memo';gi=currentMemo.blocks.find(x=>x.id===bid).items;gx=n;openOv('gv',()=>{$('#gm').innerHTML=''});await showG()}
+let gTok=0;
+async function showG(){const it=gi[gx],my=++gTok;if(!urls[it.p]||!urls[it.t])await sign(gi.flatMap(i=>[i.p,i.t]));
+const box=$('#gm');box.innerHTML='';
+if(it.k==='v'){box.innerHTML=`<video src="${urls[it.p]}" controls autoplay playsinline></video>`}
+else{const im=document.createElement('img');im.src=urls[it.t];box.appendChild(im);const hi=new Image();hi.onload=()=>{if(my===gTok)im.src=urls[it.p]};hi.src=urls[it.p]}
+$('#gc').textContent=`${gx+1} / ${gi.length}`;
+[1,-1,2].forEach(d=>{const n=gi[(gx+d+gi.length)%gi.length];if(n&&n.k!=='v'&&urls[n.p]){const x=new Image();x.src=urls[n.p]}})}
 const mvG=d=>{gx=(gx+d+gi.length)%gi.length;showG()};
-function closeG(){$('#gv').classList.remove('show');$('#gm').innerHTML=''}
+function closeG(){closeOv('gv')}
 async function delG(){if(!confirm('이 사진을 삭제할까요?'))return;const it=gi[gx];await B().remove([it.p,it.t]);gi.splice(gx,1);closeG();
 if(gOwner==='grp'){const g=data.groups.find(x=>x.id===galG);g.photos=g.photos.filter(x=>x.id!==it.id);saveData();renderGal()}else{saveMemo();renderMemoBody()}}
 $('#gm').addEventListener('touchstart',e=>sx0=e.touches[0].clientX);
@@ -1046,7 +1046,7 @@ $('#gm').addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-sx0
 let map,mk=[],pl=[];
 const pts=t=>[...new DOMParser().parseFromString(t,'text/xml').querySelectorAll('trkpt')].map(p=>[+p.getAttribute('lat'),+p.getAttribute('lon')]);
 const km=a=>a.reduce((s,p,i)=>{if(!i)return 0;const q=a[i-1],r=Math.PI/180,x=Math.sin((p[0]-q[0])*r/2)**2+Math.cos(q[0]*r)*Math.cos(p[0]*r)*Math.sin((p[1]-q[1])*r/2)**2;return s+12742*Math.asin(Math.sqrt(x))},0);
-async function openMap(){if(!(await sess()))return;$('#mapv').classList.add('show');
+async function openMap(){if(!(await sess()))return;openOv('mapv');
 if(!map){map=L.map('map').setView([36.64,127.49],9);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map)}
 setTimeout(()=>map.invalidateSize(),80);mk.forEach(m=>m.remove());mk=[];
 const its=[...data.groups.flatMap(g=>g.photos||[]),...data.groups.flatMap(g=>(g.subs||[]).flatMap(s=>(s.blocks||[]).filter(b=>b.type==='gallery').flatMap(b=>b.items)))].filter(i=>i.lat!=null);
@@ -1063,14 +1063,14 @@ async function dlTrk(p,n){const{data:d}=await B().createSignedUrl(p,60,{download
 async function delTrk(id,p){if(!confirm('경로를 삭제할까요?'))return;await B().remove([p]);await sb.from('tracks').delete().eq('id',id);loadTrk()}
 
 /* ===== 걸음 수 ===== */
-async function openSteps(){if(!(await sess()))return;$('#sd').value=new Date().toISOString().slice(0,10);$('#stv').classList.add('show');loadSteps()}
+async function openSteps(){if(!(await sess()))return;$('#sd').value=new Date().toISOString().slice(0,10);openOv('stv');loadSteps()}
 async function saveStep(){const n=+$('#sn').value;if(!$('#sd').value||isNaN(n))return;await sb.from('steps').upsert({day:$('#sd').value,steps:n});$('#sn').value='';loadSteps()}
 async function loadSteps(){const{data:r}=await sb.from('steps').select().order('day',{ascending:false}).limit(14);const mx=Math.max(1,...(r||[]).map(s=>s.steps));
 $('#sl').innerHTML=(r||[]).map(s=>`<div style="margin:8px 0"><small style="color:var(--muted)">${s.day} · ${s.steps.toLocaleString()}걸음</small><div style="height:14px;border-radius:4px;background:var(--primary);width:${s.steps/mx*100}%"></div></div>`).join('')||'<small>기록이 없습니다.</small>'}
 
 /* ===== 삼성 갤러리 스타일: 왼쪽 대그룹 / 오른쪽 사진 ===== */
 let galG=null,galList=[];
-async function openGal(){if(!(await sess()))return;$('#galv').classList.add('show');if(!data.groups.find(x=>x.id===galG)&&data.groups[0])galG=data.groups[0].id;renderGal()}
+async function openGal(){if(!(await sess()))return;openOv('galv');if(!data.groups.find(x=>x.id===galG)&&data.groups[0])galG=data.groups[0].id;renderGal()}
 function pickG(id){galG=id;renderGal()}
 async function renderGal(){
 $('#gside').innerHTML=data.groups.map(g=>`<div class="${g.id===galG?'on':''}" onclick="pickG('${g.id}')">${esc(g.name)}<br><small>${(g.photos||[]).length}장</small></div>`).join('')||'<div>대그룹을 먼저 만들어 주세요</div>';
@@ -1078,18 +1078,18 @@ const g=data.groups.find(x=>x.id===galG);if(!g){$('#gtt').textContent='';$('#gbo
 $('#gtt').textContent=g.name;g.photos=g.photos||[];
 await sign(g.photos.map(i=>i.t));
 $('#gmode').textContent=g.manual?'🖐 직접':'📅 날짜';
-if(g.manual){galList=[...g.photos];$('#gbody').innerHTML='<div class="hint">꾹 누른 채 끌어서 원하는 위치로 옮기세요</div><div class="pg" id="mg">'+galList.map(i=>`<div data-id="${i.id}" onclick="viewP('${i.id}')"><img src="${urls[i.t]||''}">${i.k==='v'?'<b>▶</b>':''}</div>`).join('')+'</div>';document.querySelectorAll('#mg>div').forEach(enableDragP);return}
+if(g.manual){galList=[...g.photos];$('#gbody').innerHTML=`<div class="hint">${selP?'옮길 자리의 사진을 누르세요 (같은 사진을 다시 누르면 취소)':'옮길 사진을 먼저 누르세요 · 크게 보기는 📅 날짜 모드'}</div><div class="pg" id="mg">`+galList.map(i=>`<div onclick="pickP('${i.id}')"${i.id===selP?' style="outline:4px solid var(--primary);outline-offset:-4px;opacity:.6"':''}><img src="${urls[i.t]||''}">${i.k==='v'?'<b>▶</b>':''}</div>`).join('')+'</div>';return}
 galList=[...g.photos].sort((a,b)=>(b.at||0)-(a.at||0));const days={};
 galList.forEach(i=>{const d=new Date(i.at||0),k=`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;(days[k]=days[k]||[]).push(i)});
 $('#gbody').innerHTML=Object.keys(days).map(k=>`<div class="dh">${k}</div><div class="pg">${days[k].map(i=>`<div onclick="viewP('${i.id}')"><img src="${urls[i.t]||''}" loading="lazy">${i.k==='v'?'<b>▶</b>':''}</div>`).join('')}</div>`).join('')||'<div class="dh">사진이 없습니다. ＋ 올리기를 눌러 주세요.</div>'}
-async function viewP(id){if(Date.now()-(window.jd||0)<500)return;gOwner='grp';gi=galList;gx=galList.findIndex(x=>x.id===id);$('#gv').classList.add('show');await showG()}
+async function viewP(id){if(Date.now()-(window.jd||0)<500)return;gOwner='grp';gi=galList;gx=galList.findIndex(x=>x.id===id);openOv('gv',()=>{$('#gm').innerHTML=''});await showG()}
 async function upP(fs,st){if(!(await sess()))return;const g=data.groups.find(x=>x.id===galG);if(!g)return alert('왼쪽에서 대그룹을 먼저 선택해 주세요.');g.photos=g.photos||[];let n=0;
 for(const f of fs){st.textContent=`올리는 중 ${++n}/${fs.length} (영상은 시간이 걸립니다. 화면을 켜 두세요)`;
 try{const it=await one(f,g.id);let at=f.lastModified;if(!f.type.startsWith('video')){const ex=await exifr.parse(f,['DateTimeOriginal']).catch(()=>null);if(ex&&ex.DateTimeOriginal)at=+ex.DateTimeOriginal}it.at=at;g.photos.push(it);saveData()}catch(e){alert(f.name+' 실패: '+e.message)}}
 st.textContent='';renderGal()}
 
 /* ===== 직접 배치 (꾹 눌러 끌기) ===== */
-function togM(){const g=data.groups.find(x=>x.id===galG);if(!g)return;g.manual=!g.manual;saveData();renderGal()}
+function togM(){const g=data.groups.find(x=>x.id===galG);if(!g)return;g.manual=!g.manual;selP=null;saveData();renderGal()}
 function enableDragP(el){let t=null,on=false,x0=0,y0=0;
 el.addEventListener('touchcancel',()=>{clearTimeout(t);on=false;el.style.opacity='';el.style.outline=''});
 el.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY;t=setTimeout(()=>{on=true;el.style.opacity='.5';el.style.outline='2px solid var(--primary)';if(navigator.vibrate)navigator.vibrate(30)},350)},{passive:true});
@@ -1098,6 +1098,20 @@ if(tg&&tg!==el){const k=[...tg.parentNode.children];k.indexOf(tg)<k.indexOf(el)?
 el.addEventListener('touchend',()=>{clearTimeout(t);if(!on)return;on=false;window.jd=Date.now();el.style.opacity='';el.style.outline='';
 const g=data.groups.find(x=>x.id===galG),m={};g.photos.forEach(i=>m[i.id]=i);
 g.photos=[...document.querySelectorAll('#mg>div')].map(d=>m[d.dataset.id]).filter(Boolean);saveData();renderGal()})}
+
+/* ===== 뒤로가기 처리 ===== */
+const ovs=[];
+function openOv(id,onClose){const e=document.getElementById(id);if(e.classList.contains('show'))return;e.classList.add('show');ovs.push({id,onClose});history.pushState({ov:id},'')}
+function closeOv(id){const t=ovs[ovs.length-1];if(t&&t.id===id){history.back();return}
+const i=ovs.findIndex(o=>o.id===id);if(i>=0){const o=ovs.splice(i,1)[0];document.getElementById(id).classList.remove('show');if(o.onClose)o.onClose()}else document.getElementById(id).classList.remove('show')}
+window.addEventListener('popstate',()=>{const t=ovs.pop();if(t){document.getElementById(t.id).classList.remove('show');if(t.onClose)t.onClose()}});
+
+/* ===== 직접 배치: 선택 후 옮길 자리 누르기 ===== */
+let selP=null;
+function pickP(id){const g=data.groups.find(x=>x.id===galG);if(!g)return;
+if(!selP){selP=id}else if(selP===id){selP=null}
+else{const a=g.photos.findIndex(x=>x.id===selP),b=g.photos.findIndex(x=>x.id===id);if(a>=0&&b>=0){const it=g.photos.splice(a,1)[0];g.photos.splice(b,0,it);saveData()}selP=null}
+renderGal()}
 </script>
 </body>
 </html>
