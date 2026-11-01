@@ -978,14 +978,13 @@ el.classList.remove('editing');
 }
 });
 
-/* ===== Supabase 연동 (아래 두 값만 입력하세요) ===== */
-const SB_URL='여기에_Project_URL', SB_KEY='여기에_anon_public_key';
+/* ===== Supabase 연동 설정 ===== */
 let sb=null;try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
 const $=s=>document.querySelector(s), B=()=>sb.storage.from('media');
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let pushT,urls={};
 const has=async()=>!!(sb&&(await sb.auth.getSession()).data.session);
-async function sess(){if(await has())return true;if(!sb){alert('index.html의 SB_URL, SB_KEY를 먼저 입력해 주세요.');return false}$('#login').classList.add('show');return false}
+async function sess(){if(await has())return true;if(!sb){alert('SB_URL과 SB_KEY 설정을 확인해 주세요.');return false}$('#login').classList.add('show');return false}
 async function doLogin(){const{error}=await sb.auth.signInWithPassword({email:$('#em').value,password:$('#pw').value});
 if(error)return alert('로그인 실패: '+error.message);$('#login').classList.remove('show');pull()}
 async function push(){if(await has())await sb.from('memo_data').upsert({id:'main',json:data,ts:data.ts||0})}
@@ -1069,7 +1068,7 @@ async function saveStep(){const n=+$('#sn').value;if(!$('#sd').value||isNaN(n))r
 async function loadSteps(){const{data:r}=await sb.from('steps').select().order('day',{ascending:false}).limit(14);const mx=Math.max(1,...(r||[]).map(s=>s.steps));
 $('#sl').innerHTML=(r||[]).map(s=>`<div style="margin:8px 0"><small style="color:var(--muted)">${s.day} · ${s.steps.toLocaleString()}걸음</small><div style="height:14px;border-radius:4px;background:var(--primary);width:${s.steps/mx*100}%"></div></div>`).join('')||'<small>기록이 없습니다.</small>'}
 
-/* ===== 삼성 갤러리 스타일: 왼쪽 대그룹 / 오른쪽 사진 ===== */
+/* ===== 갤러리 ===== */
 let galG=null,galList=[];
 async function openGal(){if(!(await sess()))return;$('#galv').classList.add('show');if(!data.groups.find(x=>x.id===galG)&&data.groups[0])galG=data.groups[0].id;renderGal()}
 function pickG(id){galG=id;renderGal()}
