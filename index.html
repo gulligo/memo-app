@@ -978,7 +978,7 @@ el.classList.remove('editing');
 }
 });
 
-/* ===== Supabase 연동 설정 ===== */
+/* ===== Supabase 연동 ===== */
 let sb=null;try{sb=supabase.createClient(SB_URL,SB_KEY)}catch(e){}
 const $=s=>document.querySelector(s), B=()=>sb.storage.from('media');
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
